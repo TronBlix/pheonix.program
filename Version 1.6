@@ -1,0 +1,1862 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; connect-src https:; frame-src https:; base-uri 'none'; object-src 'none'; form-action 'none'; worker-src 'none'">
+<meta name="referrer" content="no-referrer"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Phoenix</title>
+<style>
+:root{
+  --acc:#6ee7a0;--acc2:#34d399;
+  --bg:color-mix(in srgb,var(--acc) 4%,#07080c);
+  --card:color-mix(in srgb,var(--acc) 5%,#12141a);
+  --card2:color-mix(in srgb,var(--acc) 8%,#181b22);
+  --bd:color-mix(in srgb,var(--acc) 16%,#252830);
+  --bd2:color-mix(in srgb,var(--acc) 30%,#363a45);
+  --text:#eef0f4;--mut:#9aa1b2;--on:#04110a;
+  --ok:#4ade80;--warn:#fbbf24;--bad:#f87171;--info:#60a5fa;
+  --rad:16px;--rad-sm:10px;
+  --shadow:0 8px 30px #0006;
+  --glass:blur(16px) saturate(1.4);
+}
+[data-m=light]{
+  --bg:color-mix(in srgb,var(--acc) 8%,#f3f4f7);
+  --card:#ffffffee;--card2:#fff;
+  --bd:color-mix(in srgb,var(--acc) 28%,#d8dbe3);
+  --bd2:color-mix(in srgb,var(--acc) 42%,#c0c5d1);
+  --text:#12141a;--mut:#566073;--on:#04110a;
+  --ok:#16a34a;--warn:#b45309;--bad:#dc2626;--info:#2563eb;
+  --shadow:0 8px 30px #0001;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+html{scroll-behavior:smooth;color-scheme:dark}
+html[data-m=light]{color-scheme:light}
+body{
+  font:15px/1.5 system-ui,"Segoe UI",sans-serif;
+  background:var(--bg);color:var(--text);
+  min-height:100vh;overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.03;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+body::after{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(900px 520px at 50% -8%,color-mix(in srgb,var(--acc) 15%,transparent),transparent 70%);
+}
+#bgi{position:fixed;inset:0;z-index:0;background-size:cover;background-position:center;display:none;opacity:.45}
+#bgc{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:.92}
+#cg{position:fixed;width:280px;height:280px;margin:-140px;border-radius:50%;pointer-events:none;z-index:0;
+  background:radial-gradient(circle,color-mix(in srgb,var(--acc) 16%,transparent),transparent 70%);
+  opacity:.5}
+[data-a=off] #cg{display:none}
+::selection{background:color-mix(in srgb,var(--acc) 35%,transparent)}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+input:focus-visible,textarea:focus-visible{outline:0}
+*{scrollbar-width:thin;scrollbar-color:var(--bd2) transparent}
+button{font-family:inherit}
+
+/* ───────── icons ───────── */
+.i{width:1.2em;height:1.2em;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* ───────── navigation ───────── */
+nav{
+  position:fixed;top:max(16px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);
+  display:flex;gap:4px;padding:5px;
+  background:color-mix(in srgb,var(--card) 78%,transparent);
+  border:1px solid var(--bd);border-radius:999px;
+  backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);
+  z-index:20;box-shadow:var(--shadow);
+}
+nav button{
+  display:flex;align-items:center;gap:8px;
+  border:0;background:none;color:var(--mut);
+  padding:9px 18px;border-radius:999px;
+  font:600 14px system-ui;cursor:pointer;transition:background .15s,color .15s,box-shadow .15s;
+}
+nav button:hover{color:var(--text);background:color-mix(in srgb,var(--text) 7%,transparent)}
+nav button.on{background:var(--acc);color:var(--on);box-shadow:0 4px 16px color-mix(in srgb,var(--acc) 40%,transparent)}
+nav button:active{transform:scale(.97)}
+
+/* ───────── views ───────── */
+.v{display:none;position:relative;z-index:1}
+.v.on{display:block;animation:vin .28s ease both}
+@keyframes vin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.page{max-width:960px;margin:0 auto;padding:96px 20px 72px}
+.page-h{margin-bottom:22px}
+.page-h h1{font-size:clamp(26px,4vw,34px);letter-spacing:-.8px;font-weight:800;line-height:1.15}
+.page-h p{color:var(--mut);margin-top:6px;max-width:660px;font-size:15px}
+
+/* ───────── shared components ───────── */
+.panel{
+  position:relative;background:var(--card);border:1px solid var(--bd);
+  border-radius:var(--rad);padding:20px;margin-bottom:16px;
+  box-shadow:inset 0 1px 0 #ffffff0d,0 4px 18px #0002;
+  transition:border-color .2s;
+}
+.panel:hover{border-color:var(--bd2)}
+.ph{display:flex;gap:12px;align-items:flex-start;margin-bottom:14px}
+.pico{flex:none;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:color-mix(in srgb,var(--acc) 14%,transparent);color:var(--acc);font-size:17px}
+.pt{font-size:16px;font-weight:700;letter-spacing:-.2px}
+.pd{color:var(--mut);font-size:13.5px;margin-top:2px;line-height:1.5}
+.sub{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--mut);margin:20px 0 8px}
+.sub:first-child{margin-top:0}
+.meta{font-size:12px;color:var(--mut)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:700px){.two{grid-template-columns:1fr}}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  border:1px solid var(--bd2);background:color-mix(in srgb,var(--text) 4%,transparent);color:var(--text);
+  border-radius:var(--rad-sm);padding:10px 16px;font:600 13.5px system-ui;
+  cursor:pointer;transition:border-color .15s,background .15s,transform .1s,filter .15s;text-decoration:none;
+}
+.btn:hover{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 10%,transparent)}
+.btn:active{transform:scale(.97)}
+.btn.pri{background:var(--acc);color:var(--on);border-color:var(--acc);box-shadow:0 4px 16px color-mix(in srgb,var(--acc) 28%,transparent)}
+.btn.pri:hover{filter:brightness(1.08);background:var(--acc)}
+.btn.danger{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 45%,transparent)}
+.btn.danger:hover{background:color-mix(in srgb,var(--bad) 12%,transparent);border-color:var(--bad)}
+.btn.sm{padding:7px 12px;font-size:12.5px}
+.btn .i{font-size:16px}
+.linkbtn{border:0;background:none;color:var(--acc);font-weight:600;font-family:inherit;font-size:inherit;cursor:pointer;padding:0;text-decoration:underline;text-underline-offset:3px}
+
+.fld{display:grid;gap:6px}
+.fld>label,.fld>span.l{font-size:12.5px;font-weight:600;color:var(--mut)}
+.inp,select.inp,textarea.inp{
+  width:100%;background:color-mix(in srgb,var(--bg) 55%,transparent);border:1px solid var(--bd);
+  border-radius:var(--rad-sm);padding:11px 13px;color:var(--text);font:inherit;outline:0;
+  transition:border-color .15s,box-shadow .15s;
+}
+.inp:focus{border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 18%,transparent)}
+textarea.inp{min-height:84px;resize:vertical;font:12.5px ui-monospace,Menlo,Consolas,monospace}
+select.inp option{background:var(--card2);color:var(--text)}
+
+.opts{display:grid;gap:8px}
+.opt{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:11px 13px;border-radius:var(--rad-sm);border:1px solid var(--bd);
+  background:transparent;cursor:pointer;font:500 13.5px system-ui;color:var(--text);text-align:left;
+  transition:border-color .15s,background .15s,transform .1s;
+}
+.opt:hover{border-color:var(--bd2);background:color-mix(in srgb,var(--acc) 6%,transparent)}
+.opt:active{transform:scale(.98)}
+.opt.on{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 13%,transparent);box-shadow:inset 0 0 0 1px var(--acc)}
+.opt small{display:block;color:var(--mut);font-size:12px;font-weight:400}
+.opt.c{justify-content:center;text-align:center}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:6px}
+
+.tog{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;
+  padding:13px 15px;border:1px solid var(--bd);border-radius:var(--rad-sm);background:transparent;
+  color:var(--text);cursor:pointer;text-align:left;font:inherit;transition:border-color .15s,background .15s;
+}
+.tog:hover{border-color:var(--bd2);background:color-mix(in srgb,var(--acc) 5%,transparent)}
+.tog b{display:block;font-size:14px}
+.tog small{display:block;color:var(--mut);font-size:12.5px;font-weight:400;margin-top:2px;line-height:1.4}
+.tsw{flex:none;width:44px;height:26px;border-radius:99px;background:var(--bd2);position:relative;transition:background .2s}
+.tsw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px #0005}
+.tog.on .tsw{background:var(--acc)}
+.tog.on .tsw::after{transform:translateX(18px)}
+
+.swgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px}
+.swt{
+  position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;padding:13px 6px 10px;
+  border:1px solid var(--bd);border-radius:var(--rad-sm);background:transparent;color:var(--text);cursor:pointer;
+  font:600 12px system-ui;transition:border-color .15s,background .15s,transform .1s;
+}
+.swt i{width:30px;height:30px;border-radius:50%;background:var(--c);box-shadow:0 0 0 3px color-mix(in srgb,var(--c) 25%,transparent)}
+.swt:hover{border-color:var(--bd2)}
+.swt.on{border-color:var(--c);background:color-mix(in srgb,var(--c) 13%,transparent)}
+.swt:active{transform:scale(.96)}
+.swt input[type=color]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:0;padding:0}
+
+kbd,.keycap{
+  display:inline-flex;align-items:center;justify-content:center;min-width:44px;padding:9px 16px;
+  border:1px solid var(--bd2);border-bottom-width:3px;border-radius:10px;
+  background:var(--card2);color:var(--text);font:700 15px ui-monospace,Menlo,Consolas,monospace;
+}
+button.keycap{cursor:pointer}
+button.keycap:hover{border-color:var(--acc)}
+button.keycap.listen{border-color:var(--acc);color:var(--acc);animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 5px color-mix(in srgb,var(--acc) 25%,transparent)}}
+
+code{font:12.5px ui-monospace,Menlo,Consolas,monospace;background:color-mix(in srgb,var(--text) 8%,transparent);padding:1px 6px;border-radius:6px}
+
+.tabs{display:flex;gap:4px;padding:4px;background:color-mix(in srgb,var(--card) 70%,transparent);border:1px solid var(--bd);border-radius:999px;width:max-content;max-width:100%;overflow-x:auto;margin-bottom:20px}
+.tabs button{display:flex;align-items:center;gap:7px;border:0;background:none;color:var(--mut);padding:9px 16px;border-radius:999px;font:600 13.5px system-ui;cursor:pointer;white-space:nowrap;transition:color .15s,background .15s}
+.tabs button:hover{color:var(--text)}
+.tabs button.on{background:color-mix(in srgb,var(--acc) 18%,transparent);color:var(--text);box-shadow:inset 0 0 0 1px var(--acc)}
+.badge{font-size:11px;padding:1px 8px;border-radius:99px;background:var(--bd);color:var(--text);font-weight:700}
+.badge.ok{background:color-mix(in srgb,var(--ok) 25%,transparent);color:var(--ok)}
+.badge.warn{background:color-mix(in srgb,var(--warn) 25%,transparent);color:var(--warn)}
+.pt-pane,.set-pane{display:none}
+.pt-pane.on,.set-pane.on{display:block;animation:vin .25s ease both}
+
+details.acc{border:1px solid var(--bd);border-radius:var(--rad);background:var(--card);margin-bottom:10px;overflow:hidden;transition:border-color .2s}
+details.acc:hover{border-color:var(--bd2)}
+details.acc>summary{cursor:pointer;padding:15px 18px;font-weight:700;font-size:14.5px;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:12px}
+details.acc>summary::-webkit-details-marker{display:none}
+details.acc>summary::after{content:"+";color:var(--acc);font-size:22px;font-weight:400;line-height:1}
+details.acc[open]>summary::after{content:"–"}
+details.acc>.body{padding:0 18px 18px}
+
+#toast{
+  position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);z-index:200;
+  background:var(--card2);border:1px solid var(--acc);color:var(--text);
+  padding:11px 20px;border-radius:999px;font:600 13.5px system-ui;box-shadow:var(--shadow);
+  opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;max-width:calc(100vw - 32px);text-align:center;
+}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* ───────── home ───────── */
+#v-home{
+  min-height:100vh;display:none;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:90px 20px 50px;
+}
+#v-home.on{display:flex}
+.home-logo{
+  position:relative;width:96px;height:96px;border-radius:28px;
+  display:grid;place-items:center;font-size:46px;margin-bottom:18px;
+  background:color-mix(in srgb,var(--card) 70%,transparent);
+  border:1px solid var(--bd2);
+  box-shadow:0 0 0 7px color-mix(in srgb,var(--acc) 8%,transparent),0 14px 44px color-mix(in srgb,var(--acc) 24%,transparent);
+  overflow:hidden;animation:float 5s ease-in-out infinite;transition:transform .3s;
+}
+@keyframes float{50%{translate:0 -7px}}
+.home-logo:hover{transform:rotate(-5deg) scale(1.06)}
+.home-logo img{width:100%;height:100%;object-fit:cover}
+.home-title{
+  font-size:clamp(42px,9vw,76px);font-weight:800;letter-spacing:-2px;line-height:1;
+  margin-bottom:12px;display:flex;justify-content:center;flex-wrap:wrap;
+}
+.home-title span{display:inline-block;animation:rise .6s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0)*45ms)}
+.home-title .a{color:var(--acc);text-shadow:0 0 38px color-mix(in srgb,var(--acc) 55%,transparent)}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}}
+[data-a=off] .home-logo,[data-a=off] .home-title span{animation:none}
+.home-hello{color:var(--mut);font-size:15px;margin-bottom:28px;text-align:center}
+.home-search{
+  width:min(620px,100%);
+  display:flex;align-items:center;gap:12px;
+  background:var(--card);border:1px solid var(--bd2);
+  border-radius:999px;padding:6px 8px 6px 22px;
+  transition:border-color .2s,box-shadow .2s;
+  box-shadow:0 4px 18px #0003;
+}
+.home-search:hover{box-shadow:0 6px 24px #0004}
+.home-search:focus-within{border-color:var(--acc);box-shadow:0 6px 28px #0004,0 0 0 4px color-mix(in srgb,var(--acc) 20%,transparent)}
+.home-search .si{flex:none;color:var(--mut);display:grid;place-items:center;font-size:20px}
+.home-search input{flex:1;min-width:0;background:none;border:0;outline:0;color:var(--text);font:17px system-ui;padding:14px 0}
+.home-search input::placeholder{color:var(--mut);opacity:.75}
+.home-search button{
+  border:0;background:var(--acc);color:var(--on);
+  font:700 14px system-ui;padding:12px 24px;border-radius:999px;
+  cursor:pointer;flex:none;transition:filter .15s,transform .15s;
+}
+.home-search button:hover{filter:brightness(1.08)}
+.home-search button:active{transform:scale(.96)}
+.home-meta{margin-top:14px;font-size:13px;color:var(--mut);display:flex;gap:6px;align-items:center;justify-content:center;flex-wrap:wrap;text-align:center}
+.home-meta b{color:var(--text);font-weight:600}
+.recent{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:18px;width:min(620px,100%)}
+.recent:empty{display:none}
+.chip{border:1px solid var(--bd);background:color-mix(in srgb,var(--card) 70%,transparent);color:var(--mut);
+  font:500 12.5px system-ui;padding:6px 13px;border-radius:999px;cursor:pointer;max-width:200px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:color .15s,border-color .15s}
+.chip:hover{color:var(--text);border-color:var(--acc)}
+.chip.clr{border-style:dashed}
+.home-links{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:36px;max-width:620px}
+.home-links a{
+  width:96px;padding:15px 6px 12px;text-align:center;text-decoration:none;color:var(--text);
+  font-size:12.5px;font-weight:600;border:1px solid var(--bd);border-radius:var(--rad);
+  background:color-mix(in srgb,var(--card) 70%,transparent);backdrop-filter:blur(8px);
+  transition:transform .18s,border-color .18s,box-shadow .18s;
+}
+.home-links .ic{
+  width:46px;height:46px;margin:0 auto 9px;border-radius:14px;display:grid;place-items:center;
+  color:var(--c,var(--acc));background:color-mix(in srgb,var(--c,var(--acc)) 15%,transparent);font-size:22px;
+}
+.home-links a:hover{transform:translateY(-4px);border-color:var(--c,var(--acc));box-shadow:0 10px 26px color-mix(in srgb,var(--c,var(--acc)) 25%,transparent)}
+
+/* ───────── settings ───────── */
+.set-wrap{display:grid;grid-template-columns:220px 1fr;gap:24px;align-items:start}
+.set-side{position:sticky;top:90px;display:grid;gap:4px;padding:8px;background:var(--card);border:1px solid var(--bd);border-radius:var(--rad)}
+.set-side button{display:flex;align-items:center;gap:11px;border:0;background:none;color:var(--mut);padding:11px 12px;border-radius:var(--rad-sm);font:600 14px system-ui;cursor:pointer;text-align:left;transition:color .15s,background .15s}
+.set-side button .i{font-size:18px}
+.set-side button:hover{color:var(--text);background:color-mix(in srgb,var(--text) 6%,transparent)}
+.set-side button.on{color:var(--text);background:color-mix(in srgb,var(--acc) 16%,transparent);box-shadow:inset 3px 0 0 var(--acc)}
+.pane-h{margin-bottom:16px}
+.pane-h h2{font-size:20px;font-weight:800;letter-spacing:-.4px}
+.pane-h p{color:var(--mut);font-size:14px;margin-top:2px}
+.range-row{display:flex;align-items:center;gap:12px}
+.range-row input[type=range]{flex:1;accent-color:var(--acc)}
+#radv{font-size:13px;color:var(--mut);min-width:30px;text-align:right}
+.tabprev{display:flex;align-items:center;gap:9px;padding:9px 14px;border:1px solid var(--bd);border-bottom:0;border-radius:12px 12px 0 0;background:var(--card2);width:min(280px,100%);font-size:13px;margin-top:4px}
+.tabprev img{width:16px;height:16px;border-radius:4px;flex:none}
+.tabprev span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tabprev-bar{height:6px;background:var(--card2);border:1px solid var(--bd);border-radius:0 6px 6px 6px;margin-bottom:12px}
+.danger-zone{border-color:color-mix(in srgb,var(--bad) 45%,var(--bd))}
+.danger-zone:hover{border-color:var(--bad)}
+
+/* background picker */
+.bg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
+.bgcard{
+  position:relative;display:block;border:2px solid var(--bd);border-radius:var(--rad-sm);padding:0;
+  background:var(--card2);cursor:pointer;overflow:hidden;color:var(--text);text-align:left;
+  transition:transform .15s,border-color .15s,box-shadow .15s;
+}
+.bgcard:hover{transform:translateY(-3px);border-color:var(--bd2);box-shadow:0 10px 24px #0005}
+.bgcard:active{transform:scale(.98)}
+.bgcard.on{border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 25%,transparent)}
+.bgthumb{display:block;width:100%;aspect-ratio:8/5;background:var(--bg)}
+.bgplain{display:block;width:100%;aspect-ratio:8/5;background:var(--bg);background-image:linear-gradient(45deg,color-mix(in srgb,var(--text) 5%,transparent) 25%,transparent 25%,transparent 75%,color-mix(in srgb,var(--text) 5%,transparent) 75%);background-size:14px 14px}
+.bgmeta{display:flex;justify-content:space-between;align-items:center;padding:9px 11px;gap:6px}
+.bgmeta b{font-size:13.5px}
+.bgmeta small{color:var(--mut);font-size:11.5px}
+.bgcard .chk{position:absolute;top:8px;right:8px;width:24px;height:24px;border-radius:50%;background:var(--acc);color:var(--on);display:none;place-items:center;font-size:14px;font-weight:800;box-shadow:0 2px 8px #0006}
+.bgcard.on .chk{display:grid}
+.upl{
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:18px;
+  border:2px dashed color-mix(in srgb,var(--acc) 55%,var(--bd));border-radius:var(--rad);
+  background:color-mix(in srgb,var(--acc) 6%,transparent);transition:background .15s,border-color .15s;
+}
+.upl:hover,.upl.drag{background:color-mix(in srgb,var(--acc) 13%,transparent);border-color:var(--acc)}
+.upl.on{border-style:solid;border-color:var(--acc)}
+.upl-ico{width:72px;height:72px;border-radius:16px;display:grid;place-items:center;background:color-mix(in srgb,var(--acc) 18%,transparent);color:var(--acc);background-size:cover;background-position:center;flex:none;font-size:30px;border:1px solid var(--bd2)}
+.upl-txt{flex:1;min-width:200px}
+.upl-txt b{display:block;font-size:15px}
+.upl-txt small{color:var(--mut);font-size:13px;line-height:1.4;display:block;margin-top:2px}
+
+/* ───────── privacy page ───────── */
+.usecards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+@media(max-width:700px){.usecards{grid-template-columns:1fr}}
+.uc{border:1px solid var(--bd);border-radius:var(--rad);padding:16px 18px;background:var(--card)}
+.uc b{display:flex;align-items:center;gap:8px;font-size:14px;margin-bottom:8px}
+.uc.good{border-color:color-mix(in srgb,var(--ok) 40%,var(--bd))}
+.uc.good b{color:var(--ok)}
+.uc.bad{border-color:color-mix(in srgb,var(--bad) 35%,var(--bd))}
+.uc.bad b{color:var(--bad)}
+.uc ul{list-style:none;display:grid;gap:5px}
+.uc li{font-size:13.5px;color:var(--mut);padding-left:16px;position:relative;line-height:1.45}
+.uc li::before{content:"•";position:absolute;left:3px}
+.px-flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:6px;margin:4px 0 14px}
+.px-node{padding:8px 11px;border:1px solid var(--bd);border-radius:var(--rad-sm);background:var(--card2);font-size:12px;font-weight:600}
+.px-node small{display:block;font-weight:400;color:var(--mut);font-size:11px;margin-top:2px}
+.px-node.core{border-color:var(--acc)}
+.px-arrow{color:var(--acc);font-weight:700;align-self:center}
+.px-bar{display:flex;gap:8px;margin:14px 0 8px}
+.px-bar input{flex:1;min-width:0}
+.px-bar button{padding:0 26px}
+.px-modes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media(max-width:700px){.px-modes{grid-template-columns:1fr}}
+.px-modes .opt{flex-direction:column;align-items:flex-start;gap:3px;padding:13px 14px}
+.px-modes .opt b{font-size:14px;display:flex;align-items:center;gap:8px}
+.px-modes .opt small{color:var(--mut);font-size:12px;line-height:1.4}
+.px-modes .opt .when{font-size:11.5px;color:var(--acc);font-weight:600;margin-top:3px}
+.px-ex{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 0;align-items:center;font-size:12.5px;color:var(--mut)}
+.px-ex button{border:1px solid var(--bd);background:transparent;color:var(--text);padding:6px 12px;border-radius:999px;font:12.5px system-ui;cursor:pointer;transition:border-color .15s}
+.px-ex button:hover{border-color:var(--acc)}
+.px-step{display:flex;gap:10px;padding:10px 0;border-top:1px solid var(--bd);font-size:13px;line-height:1.45}
+.px-step:first-child{border-top:0}
+.px-ic{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;flex-shrink:0;margin-top:1px}
+.px-ic.ok{background:var(--ok);color:#04110a}
+.px-ic.fail{background:var(--bad);color:#220808}
+.px-ic.skip{background:var(--bd);color:var(--mut)}
+.px-ic.warn{background:var(--warn);color:#221a05}
+.px-ic.info{background:var(--info);color:#05121f}
+.px-step b{display:block;font-size:13.5px}
+.px-step span{color:var(--mut);word-break:break-word}
+.px-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+@media(max-width:600px){.px-stats{grid-template-columns:repeat(3,1fr)}}
+.px-stat{border:1px solid var(--bd);border-radius:var(--rad-sm);padding:10px 12px;background:var(--card2)}
+.px-stat b{display:block;font-size:22px;color:var(--acc)}
+.px-stat span{font-size:11.5px;color:var(--mut)}
+.px-res h4{font-size:16px;margin:0 0 4px}
+.px-res p{margin:6px 0;line-height:1.55;font-size:14px}
+.px-item{padding:10px 0;border-top:1px solid var(--bd)}
+.px-item:first-of-type{border-top:0}
+.px-link{color:var(--acc);cursor:pointer;font-weight:600;text-decoration:none;background:none;border:0;font:600 14px system-ui;padding:0;text-align:left}
+.px-link:hover{text-decoration:underline}
+.px-err{border:1px solid var(--bad);border-radius:var(--rad-sm);padding:14px;font-size:13.5px;line-height:1.5;background:color-mix(in srgb,var(--bad) 8%,transparent)}
+.px-frame{width:100%;height:68vh;border:1px solid var(--bd);border-radius:var(--rad-sm);background:#fff;margin-top:10px}
+.px-log{font:12px ui-monospace,Menlo,Consolas,monospace;max-height:260px;overflow:auto}
+.px-row{display:grid;grid-template-columns:62px 58px 74px 1fr;gap:8px;padding:6px 0;border-top:1px solid var(--bd);align-items:baseline}
+.px-row:first-child{border-top:0}
+.px-row .u{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--mut)}
+.px-badge{font-weight:700}
+.px-badge.HIT{color:var(--info)}.px-badge.FETCHED{color:var(--ok)}.px-badge.BLOCKED,.px-badge.ERROR{color:var(--bad)}.px-badge.FRAME{color:var(--warn)}
+.px-help{font-size:13px;color:var(--mut);line-height:1.55;margin:0 0 10px}
+.px-doc h4{font-size:14px;margin:16px 0 6px}
+.px-doc h4:first-child{margin-top:0}
+.px-doc p,.px-doc li{font-size:13.5px;color:var(--mut);line-height:1.6}
+.px-doc ul,.px-doc ol{padding-left:20px}
+.px-doc strong{color:var(--text)}
+.px-doc table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px}
+.px-doc th,.px-doc td{border:1px solid var(--bd);padding:7px 9px;text-align:left;vertical-align:top}
+.px-doc th{color:var(--text)}
+.sec-top{display:flex;align-items:center;gap:18px;margin-bottom:10px}
+.ring{--p:0;position:relative;flex:none;width:88px;height:88px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--acc) calc(var(--p)*1%),var(--bd) 0)}
+.ring::after{content:"";position:absolute;inset:8px;border-radius:50%;background:var(--card)}
+.ring b{position:relative;z-index:1;font-size:19px}
+.sec-verdict{font-size:17px;font-weight:700}
+.sec-tbl{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px}
+.sec-tbl th,.sec-tbl td{border:1px solid var(--bd);padding:7px 9px;text-align:left;vertical-align:top}
+.sec-tbl th{color:var(--text)}
+.sec-tbl td:first-child{font-family:ui-monospace,Menlo,Consolas,monospace;white-space:nowrap}
+.sec-tbl td{color:var(--mut)}
+.sec-layers{display:grid;gap:8px;margin:8px 0 4px}
+.sec-layer{border:1px solid var(--bd);border-radius:var(--rad-sm);padding:12px 14px;background:var(--card2);font-size:13px;line-height:1.5}
+.sec-layer b{display:block;color:var(--text);font-size:13.5px}
+.sec-layer span{color:var(--mut)}
+.sec-layer em{font-style:normal;font-size:11px;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.5px}
+
+/* ───────── lock screen ───────── */
+#lk{display:none;position:fixed;inset:0;z-index:100;background:color-mix(in srgb,var(--bg) 90%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);place-items:center;padding:20px}
+#lk.on{display:grid}
+.lockbox{text-align:center;width:min(340px,100%);padding:28px;margin:0}
+.lockbox .pico{margin:0 auto 12px;width:52px;height:52px;font-size:24px;border-radius:16px}
+.lockbox .inp{margin:16px 0 10px;text-align:center}
+#lm{display:block;min-height:18px;color:var(--bad);font-size:13px;margin-bottom:8px}
+
+/* ───────── surface styles ───────── */
+[data-card=glass] .panel,[data-card=glass] .home-search,[data-card=glass] .home-logo,[data-card=glass] .home-links a,[data-card=glass] details.acc,[data-card=glass] .uc,[data-card=glass] .set-side{
+  background:color-mix(in srgb,var(--card) 55%,transparent);
+  backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);
+}
+[data-card=sharp] .panel,[data-card=sharp] .home-search,[data-card=sharp] .home-logo,[data-card=sharp] .home-links a,[data-card=sharp] .opt,[data-card=sharp] details.acc,[data-card=sharp] .uc,[data-card=sharp] .bgcard,[data-card=sharp] .set-side{border-radius:6px}
+[data-card=soft] .panel,[data-card=soft] .home-search,[data-card=soft] details.acc,[data-card=soft] .uc,[data-card=soft] .set-side{border-radius:24px}
+
+/* ───────── responsive ───────── */
+@media(max-width:760px){
+  .set-wrap{grid-template-columns:1fr;gap:14px}
+  .set-side{position:static;display:flex;overflow-x:auto;padding:6px}
+  .set-side button{white-space:nowrap;padding:9px 13px}
+  .set-side button.on{box-shadow:inset 0 -3px 0 var(--acc)}
+}
+@media(max-width:640px){
+  nav{top:auto;bottom:max(12px,env(safe-area-inset-bottom));left:12px;right:12px;transform:none;justify-content:space-around}
+  nav button{flex:1;justify-content:center;flex-direction:column;gap:3px;padding:8px 6px;font-size:11.5px;border-radius:18px}
+  nav button .i{font-size:20px}
+  .page{padding:28px 16px 110px}
+  #v-home{padding:40px 16px 120px}
+  #toast{bottom:92px}
+  .home-links{gap:10px}
+  .home-links a{width:86px}
+  .home-search{padding-left:16px}
+  .home-search button{padding:12px 18px}
+  .px-bar button{padding:0 18px}
+}
+@media(prefers-reduced-motion:reduce){.v.on,.pt-pane.on,.set-pane.on{animation:none}*{transition-duration:.01ms!important;animation:none!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></symbol>
+  <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 17l.7 1.8L21.5 19.5l-1.8.7L19 22l-.7-1.8-1.8-.7 1.8-.7z"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-9 9"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></symbol>
+  <symbol id="i-mask" viewBox="0 0 24 24"><path d="M3 3l18 18"/><path d="M10.6 6.1A9.6 9.6 0 0112 6c5 0 9 6 9 6a15 15 0 01-3.2 3.9M6.5 7.6C4.1 9.3 3 12 3 12s4 6 9 6c1.4 0 2.7-.4 3.8-1"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></symbol>
+  <symbol id="i-db" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3"/></symbol>
+  <symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-5.5 9.5A1.5 1.5 0 005.8 21h12.4a1.5 1.5 0 001.3-2.5L14 9V3"/><path d="M7.5 15h9"/></symbol>
+  <symbol id="i-pulse" viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z"/><path d="M4 19V5M8 7h7"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></symbol>
+  <symbol id="i-frame" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></symbol>
+  <symbol id="i-cookie" viewBox="0 0 24 24"><path d="M12 3a9 9 0 109 9 4 4 0 01-4-4 4 4 0 01-5-5z"/><circle cx="9" cy="11" r=".8"/><circle cx="14" cy="15" r=".8"/><circle cx="8.5" cy="15.5" r=".8"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+</svg>
+
+<div id="bgi"></div>
+<canvas id="bgc"></canvas>
+<div id="cg"></div>
+
+<nav aria-label="Main">
+  <button data-go="home" class="on"><svg class="i"><use href="#i-home"/></svg>Home</button>
+  <button data-go="px"><svg class="i"><use href="#i-shield"/></svg>Privacy</button>
+  <button data-go="set"><svg class="i"><use href="#i-gear"/></svg>Settings</button>
+</nav>
+
+<!-- ═════════ HOME ═════════ -->
+<div class="v on" id="v-home">
+  <div class="home-logo" id="lg">🔥</div>
+  <div class="home-title" id="ttl"></div>
+  <div class="home-hello" id="hello"></div>
+  <form class="home-search" id="sf" action="#" autocomplete="off">
+    <div class="si" aria-hidden="true"><svg class="i"><use href="#i-search"/></svg></div>
+    <input id="q" type="search" placeholder="Search the web or type a web address" autofocus aria-label="Search">
+    <button type="submit">Search</button>
+  </form>
+  <div class="home-meta" id="hmeta"></div>
+  <div class="recent" id="rec"></div>
+  <div class="home-links" id="qlinks"></div>
+</div>
+
+<!-- ═════════ PRIVACY (proxy + security, merged) ═════════ -->
+<div class="v page" id="v-px">
+  <div class="page-h">
+    <h1>Privacy &amp; Proxy</h1>
+    <p>See what happens between you and a website, and control what gets shared. Everything here runs inside this page, so it only affects the tools on this page, not the rest of your browser.</p>
+  </div>
+
+  <div class="tabs" id="ptabs" role="tablist">
+    <button data-pt="try" class="on"><svg class="i"><use href="#i-flask"/></svg>Try the proxy</button>
+    <button data-pt="prot"><svg class="i"><use href="#i-shield"/></svg>Protection <span class="badge" id="pbadge" hidden></span></button>
+    <button data-pt="act"><svg class="i"><use href="#i-pulse"/></svg>Activity</button>
+    <button data-pt="learn"><svg class="i"><use href="#i-book"/></svg>Learn</button>
+  </div>
+
+  <!-- Tab 1: try it -->
+  <section class="pt-pane on" id="pt-try">
+    <div class="usecards">
+      <div class="uc good"><b>✓ What this is good for</b>
+        <ul>
+          <li>Reading a page as plain text, with no scripts, ads or trackers</li>
+          <li>Seeing exactly how a web request works, step by step</li>
+          <li>Blocking known ad and tracking sites</li>
+        </ul>
+      </div>
+      <div class="uc bad"><b>✕ What it can't do</b>
+        <ul>
+          <li>Hide your IP address (sites still see you)</li>
+          <li>Get around school or work filters</li>
+          <li>Encrypt your traffic (HTTPS does that)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="panel">
+      <header class="ph"><span class="pico"><svg class="i"><use href="#i-flask"/></svg></span><div><div class="pt">Make a request</div><p class="pd">A proxy is a middleman: your request goes through a program that can check it, remember the answer and keep a record. Pick a mode, type something, press Go.</p></div></header>
+      <div class="px-modes" id="pxm"></div>
+      <form class="px-bar" id="pxf" autocomplete="off">
+        <input class="inp" id="pxq" type="text" placeholder="Search a topic…" aria-label="Proxy request">
+        <button class="btn pri" type="submit">Go</button>
+      </form>
+      <div class="px-ex" id="pxex"></div>
+    </div>
+
+    <div class="panel px-res" id="pxout"><span class="meta">Results appear here. Not sure where to start? Press one of the examples above.</span></div>
+
+    <div class="panel">
+      <header class="ph"><span class="pico"><svg class="i"><use href="#i-list"/></svg></span><div><div class="pt">What the proxy did</div><p class="pd">Every request passes through these six steps. Below you can see what each step decided for your latest request.</p></div></header>
+      <div class="px-flow">
+        <div class="px-node">You<small>type a search or URL</small></div><div class="px-arrow">→</div>
+        <div class="px-node core">1 Normalize<small>tidy the URL</small></div><div class="px-arrow">→</div>
+        <div class="px-node core">2 Rules<small>allow or block</small></div><div class="px-arrow">→</div>
+        <div class="px-node core">3 Cache<small>seen it before?</small></div><div class="px-arrow">→</div>
+        <div class="px-node core">4 Fetch<small>ask the site</small></div><div class="px-arrow">→</div>
+        <div class="px-node core">5 Transform<small>clean the reply</small></div><div class="px-arrow">→</div>
+        <div class="px-node core">6 Log<small>write it down</small></div><div class="px-arrow">→</div>
+        <div class="px-node">You<small>see the result</small></div>
+      </div>
+      <div id="pxtr"><span class="meta">Nothing yet. Run a request above and each step will be listed here.</span></div>
+    </div>
+  </section>
+
+  <!-- Tab 2: protection -->
+  <section class="pt-pane" id="pt-prot">
+    <div class="panel">
+      <header class="ph"><span class="pico"><svg class="i"><use href="#i-shield"/></svg></span><div><div class="pt">Security check-up</div><p class="pd">Live tests of this page's protections, run right now. Amber items are worth fixing; blue items are just information.</p></div></header>
+      <div class="sec-top"><div class="ring" id="ring"><b id="scs">–</b></div><div><div class="sec-verdict" id="sverd">Checking…</div><span class="meta" id="scl">checks passed</span></div></div>
+      <div id="sck"></div>
+      <div class="btns"><button class="btn" id="scr" type="button">Run checks again</button></div>
+    </div>
+
+    <div class="panel">
+      <header class="ph"><span class="pico"><svg class="i"><use href="#i-cookie"/></svg></span><div><div class="pt">Block trackers &amp; cookies</div><p class="pd">Third-party cookies are set by a company other than the site you're on (usually advertisers) so they can recognise you across sites. A web page can't change your browser's cookie settings, so Phoenix protects you in three layers:</p></div></header>
+      <div class="sec-layers">
+        <div class="sec-layer"><em>Always on</em><b>Layer 1: Proxy requests carry no cookies</b><span>Fetch and Search requests are sent with credentials omitted, so no cookies go out and any a site tries to set are ignored. Reader view also removes scripts and images that could set them.</span></div>
+        <div class="sec-layer"><em>You choose</em><b>Layer 2: Frame isolation</b><span>Sites shown in Frame mode are boxed in. <b style="display:inline">Strict</b> stops them using their own cookies and storage (and, in Chromium browsers, gives them an empty temporary cookie jar). Some sites that need to remember you won't work in Strict.</span></div>
+        <div class="sec-layer"><em>Your browser</em><b>Layer 3: Browser setting</b><span>The only switch that blocks third-party cookies everywhere else. Look in your browser's Privacy or Cookies settings for "third-party cookies" or "cross-site tracking". Safari and Firefox already restrict them by default.</span></div>
+      </div>
+      <div class="sub">Layer 2 setting: frame isolation</div>
+      <div class="opts" id="sci" style="grid-template-columns:1fr 1fr"></div>
+      <div class="btns"><button class="btn" id="sct" type="button">Add common tracker sites to the blocklist</button><span class="meta" id="sctn"></span></div>
+    </div>
+
+    <div class="panel">
+      <header class="ph"><span class="pico"><svg class="i"><use href="#i-list"/></svg></span><div><div class="pt">Site rules</div><p class="pd">Rules run before anything is requested. A blocked site is never contacted. Use these to decide which websites the proxy may reach.</p></div></header>
+      <div class="fld"><label for="pxbl">Blocklist: sites to never contact</label>
+        <textarea class="inp" id="pxbl" spellcheck="false" placeholder="One site per line, e.g. example.com"></textarea>
+        <span class="meta">Subdomains are included: <code>example.com</code> also covers <code>www.example.com</code>.</span></div>
+      <div class="opts" style="margin-top:14px" id="pxro"></div>
+      <div id="pxalw" style="display:none;margin-top:14px"><div class="fld"><label for="pxal">Allowlist: the only sites the proxy may reach</label>
+        <textarea class="inp" id="pxal" spellcheck="false"></textarea></div></div>
+    </div>
+
+    <div class="panel">
+      <header class="ph"><span class="pico"><svg class="i"><use href="#i-lock"/></svg></span><div><div class="pt">PIN lock</div><p class="pd" id="scpin"></p></div></header>
+      <div class="btns" style="margin-top:0"><button class="btn" type="button" data-go-set="1">Open lock settings</button></div>
+    </div>
+
+    <details class="acc">
+      <summary>Technical details: cookies, storage and Content Security Policy</summary>
+      <div class="body">
+        <div class="sub">Cookie &amp; storage audit</div>
+        <p class="px-help">What this page itself has stored in your browser right now (values are never shown).</p>
+        <div id="sca"></div>
+        <div class="sub">Content Security Policy</div>
+        <p class="px-help">A rule list the browser enforces on this page. Even if an attacker injected something, the browser would refuse anything the policy doesn't allow.</p>
+        <table class="sec-tbl" id="scp"></table>
+        <p class="px-help" style="margin-top:10px"><b>Why <code>'unsafe-inline'</code>?</b> Phoenix is a single file with its code inside it, so inline scripts must be allowed. That is the one weak spot of a one-file design: the policy stops outside resources but can't stop code injected inline. This is why Phoenix also escapes all text it displays and never uses <code>eval</code>.</p>
+        <div class="sub">Blocked by the policy this session</div>
+        <div class="px-log" id="scv"></div>
+      </div>
+    </details>
+  </section>
+
+  <!-- Tab 3: activity -->
+  <section class="pt-pane" id="pt-act">
+    <div class="panel">
+      <header class="ph"><span class="pico"><svg class="i"><use href="#i-pulse"/></svg></span><div><div class="pt">Session statistics</div><p class="pd">A running count of what the proxy has done since you opened this page.</p></div></header>
+      <div class="px-stats" id="pxst"></div>
+    </div>
+    <div class="panel">
+      <header class="ph"><span class="pico"><svg class="i"><use href="#i-db"/></svg></span><div><div class="pt">Cache</div><p class="pd">The cache keeps recent answers in memory, so asking for the same thing again is instant and uses no network. <b>TTL</b> (time to live) is how long an answer is trusted before it's fetched again.</p></div></header>
+      <div class="opts" id="pxtt" style="grid-template-columns:repeat(4,1fr)"></div>
+      <div class="btns"><button class="btn" id="pxcc" type="button">Clear cache</button><span class="meta" id="pxcn"></span></div>
+    </div>
+    <div class="panel">
+      <header class="ph"><span class="pico"><svg class="i"><use href="#i-list"/></svg></span><div><div class="pt">Request log</div><p class="pd">Every request is recorded: when, what kind, what the proxy decided (<span class="px-badge FETCHED">FETCHED</span> from the site, <span class="px-badge HIT">HIT</span> from cache, <span class="px-badge BLOCKED">BLOCKED</span> by your rules, <span class="px-badge ERROR">ERROR</span>, <span class="px-badge FRAME">FRAME</span> handed to the viewer) and how long it took. The log lives in memory only and disappears when you close the tab.</p></div></header>
+      <div class="px-log" id="pxlg"></div>
+      <div class="btns"><button class="btn" id="pxlc" type="button">Clear log</button><button class="btn" id="pxle" type="button">Copy log as JSON</button></div>
+    </div>
+  </section>
+
+  <!-- Tab 4: learn -->
+  <section class="pt-pane" id="pt-learn">
+    <details class="acc" open>
+      <summary>The three modes, compared</summary>
+      <div class="body px-doc">
+        <table>
+          <tr><th></th><th>Search</th><th>Fetch URL</th><th>Frame</th></tr>
+          <tr><td><b>What it does</b></td><td>Asks Wikipedia's open search API and shows results</td><td>Requests a page itself, then shows a cleaned "reader view"</td><td>Shows the site live inside a sandboxed window</td></tr>
+          <tr><td><b>Real proxy?</b></td><td>Yes, full pipeline</td><td>Yes, full pipeline</td><td>Partly: rules and logging apply, but the browser loads the site itself</td></tr>
+          <tr><td><b>Cache and clean-up</b></td><td>Yes</td><td>Yes</td><td>No (the proxy never sees the content)</td></tr>
+          <tr><td><b>Works on</b></td><td>Wikipedia</td><td>Sites that allow other pages to read them (many APIs, some sites)</td><td>Sites that allow being embedded</td></tr>
+        </table>
+      </div>
+    </details>
+    <details class="acc">
+      <summary>Why it can't open every site</summary>
+      <div class="body px-doc">
+        <p>Real proxies run on a server, which isn't limited by browser security rules. This one runs inside your browser, so it obeys them. <strong>CORS</strong> (cross-origin resource sharing) lets a site decide whether other web pages may read its responses; most sites say no. When that happens the trace shows exactly where it failed, and you can switch to Frame mode. Many sites also refuse to be framed (<code>X-Frame-Options</code> or a <code>Content-Security-Policy</code> header), and the browser then shows a blank or error frame. This page can't detect that, so Frame mode has an "open in new tab" button.</p>
+      </div>
+    </details>
+    <details class="acc">
+      <summary>What it does, and does not, do for you</summary>
+      <div class="body px-doc">
+        <h4>It does not…</h4>
+        <ul>
+          <li><strong>Hide your IP address.</strong> The request still comes from your browser, so the site sees you.</li>
+          <li><strong>Get around network filters or firewalls.</strong> Your connection is unchanged.</li>
+          <li><strong>Add encryption.</strong> Security comes from HTTPS, which the "upgrade http to https" rule helps enforce.</li>
+        </ul>
+        <h4>It does protect you by…</h4>
+        <ul>
+          <li>Blocking hosts you list before any connection is made.</li>
+          <li>Removing tracking parameters such as <code>utm_*</code>, <code>fbclid</code> and <code>gclid</code> from URLs.</li>
+          <li>Sending no cookies and no referrer, and stripping scripts, frames, stylesheets and images from fetched pages, so the reader view can't run code or phone home.</li>
+          <li>Showing Frame content in a sandbox, separated from this page.</li>
+        </ul>
+      </div>
+    </details>
+    <details class="acc">
+      <summary>How Phoenix protects this page, and its limits</summary>
+      <div class="body px-doc">
+        <h4>Hardening in this file</h4>
+        <ul>
+          <li><strong>Content Security Policy:</strong> no external scripts, styles, images or fonts; HTTPS-only connections; no plugins, no form posts, no workers.</li>
+          <li><strong>No referrer:</strong> sites you open or embed aren't told which page sent you.</li>
+          <li><strong>Output escaping:</strong> text from searches, URLs, settings and backups is inserted as plain text, never as code.</li>
+          <li><strong>Backup import filtering:</strong> a backup file can only change known settings of the right type, and can never overwrite the PIN.</li>
+          <li><strong>Frame sandbox, permission denial and <code>noopener</code>:</strong> embedded and opened sites can't reach back into this page, and camera, microphone, location and similar permissions are denied to frames.</li>
+          <li><strong>PIN storage:</strong> a salted PBKDF2 hash (150,000 rounds of SHA-256), with a lockout after 5 wrong attempts.</li>
+        </ul>
+        <h4>Limits you should know about</h4>
+        <ul>
+          <li><strong>Server headers can't be set from a file.</strong> Headers such as <code>X-Frame-Options</code>, <code>Strict-Transport-Security</code> (HSTS) and <code>Set-Cookie</code> flags are sent by a web server. A real deployment would add them; here the CSP meta tag covers what a page can do alone.</li>
+          <li><strong>The PIN is a screen lock, not encryption.</strong> Anyone with access to your browser's developer tools can read or bypass it, and settings are stored unencrypted in local storage.</li>
+          <li><strong>Links opened in a new tab are normal tabs.</strong> They follow your browser's own cookie rules (Layer 3).</li>
+          <li><strong>Frame content is the site's own.</strong> Strict mode limits what it can do, but a framed site still sees your IP address.</li>
+        </ul>
+      </div>
+    </details>
+    <details class="acc">
+      <summary>Glossary</summary>
+      <div class="body px-doc">
+        <ul>
+          <li><strong>Cache hit / miss:</strong> an answer was / wasn't already stored.</li>
+          <li><strong>Reader view:</strong> just the text and links of a page, without scripts or styling.</li>
+          <li><strong>Sandbox:</strong> a browser feature that limits what an embedded page may do.</li>
+          <li><strong>Forward vs reverse proxy:</strong> a forward proxy works for the user (this tool); a reverse proxy sits in front of a website and works for the site (load balancing, caching).</li>
+          <li><strong>First-party / third-party cookie:</strong> set by the site you're on / by another domain embedded in it.</li>
+          <li><strong>Credentialless frame:</strong> a frame loaded without your existing cookies or storage.</li>
+          <li><strong>PBKDF2 / salt:</strong> a deliberately slow hash method, and a random value that makes every stored hash unique.</li>
+          <li><strong>XSS:</strong> cross-site scripting, where an attacker gets their code to run inside a page.</li>
+        </ul>
+      </div>
+    </details>
+  </section>
+</div>
+
+<!-- ═════════ SETTINGS ═════════ -->
+<div class="v page" id="v-set">
+  <div class="page-h"><h1>Settings</h1><p>Everything is saved automatically in this browser as you change it.</p></div>
+  <div class="set-wrap">
+    <aside class="set-side" id="sside" aria-label="Settings sections">
+      <button data-pane="look" class="on"><svg class="i"><use href="#i-sparkle"/></svg>Look &amp; feel</button>
+      <button data-pane="bg"><svg class="i"><use href="#i-image"/></svg>Background</button>
+      <button data-pane="search"><svg class="i"><use href="#i-search"/></svg>Search</button>
+      <button data-pane="cloak"><svg class="i"><use href="#i-mask"/></svg>Tab disguise</button>
+      <button data-pane="lock"><svg class="i"><use href="#i-lock"/></svg>Lock</button>
+      <button data-pane="data"><svg class="i"><use href="#i-db"/></svg>Backup &amp; reset</button>
+    </aside>
+
+    <div class="set-main">
+
+      <!-- Look & feel -->
+      <section class="set-pane on" id="sp-look">
+        <div class="pane-h"><h2>Look &amp; feel</h2><p>Colors, light or dark, and how the cards look.</p></div>
+        <div class="panel">
+          <div class="sub">Accent color</div>
+          <div class="swgrid" id="th"></div>
+          <div class="sub">Mode</div>
+          <div class="seg" id="md"></div>
+        </div>
+        <div class="panel">
+          <div class="sub">Card style</div>
+          <div class="opts" id="cso" style="grid-template-columns:repeat(auto-fit,minmax(100px,1fr))"></div>
+          <div class="sub">Corner roundness</div>
+          <div class="range-row"><span class="meta">Square</span><input type="range" id="rad" min="4" max="28" step="1" aria-label="Corner roundness"><span class="meta">Round</span><span id="radv">16</span></div>
+        </div>
+        <div class="panel">
+          <header class="ph"><div><div class="pt">Name &amp; logo</div><p class="pd">Shown on the home page.</p></div></header>
+          <div class="two">
+            <div class="fld"><label for="nm">Site name</label><input class="inp" id="nm" maxlength="12"></div>
+            <div class="fld"><label for="lo">Logo emoji (optional)</label><input class="inp" id="lo" maxlength="4" placeholder="Leave empty for the default icon"></div>
+          </div>
+          <div class="btns"><button class="btn" id="lu" type="button"><svg class="i"><use href="#i-upload"/></svg>Upload a logo image</button><button class="btn" id="lx" type="button">Remove logo</button></div>
+        </div>
+      </section>
+
+      <!-- Background -->
+      <section class="set-pane" id="sp-bg">
+        <div class="pane-h"><h2>Background</h2><p>Click a preview to use it. They're all live, so what you see is what you get.</p></div>
+        <div class="panel">
+          <div class="sub">Animated backgrounds</div>
+          <div class="bg-grid" id="bgo"></div>
+          <p class="meta" style="margin-top:10px">Waves, Matrix and Gradient follow your accent color. The others keep their own colors.</p>
+          <div class="sub">Or use your own picture</div>
+          <div id="bgup"></div>
+        </div>
+        <div class="panel">
+          <div class="sub">Effect strength</div>
+          <div class="seg" id="ino"></div>
+          <div class="sub">Animation</div>
+          <div class="seg" id="ano" style="max-width:320px"></div>
+          <p class="meta" style="margin-top:10px">Turn animation off for a still background. It also saves battery and helps if you find motion distracting.</p>
+        </div>
+      </section>
+
+      <!-- Search -->
+      <section class="set-pane" id="sp-search">
+        <div class="pane-h"><h2>Search</h2><p>What happens when you search from the home page.</p></div>
+        <div class="panel">
+          <header class="ph"><span class="pico"><svg class="i"><use href="#i-search"/></svg></span><div><div class="pt">Search engine</div><p class="pd">Used by the home page search box. Results open in a new tab.</p></div></header>
+          <div class="seg" id="eng"></div>
+        </div>
+        <div class="panel">
+          <header class="ph"><span class="pico"><svg class="i"><use href="#i-shield"/></svg></span><div><div class="pt">Search through the privacy proxy</div><p class="pd">Instead of opening your search engine, home searches go to the Privacy page so you can watch each step the proxy takes. Handy for learning or demos.</p></div></header>
+          <div class="opts" id="pxso"></div>
+        </div>
+      </section>
+
+      <!-- Tab disguise -->
+      <section class="set-pane" id="sp-cloak">
+        <div class="pane-h"><h2>Tab disguise</h2><p>Change how this page looks in your browser's tab bar, and leave quickly if you need to.</p></div>
+        <div class="panel">
+          <header class="ph"><div><div class="pt">Tab title &amp; icon</div><p class="pd">Pick what the browser tab should show.</p></div></header>
+          <div class="tabprev" id="tabprev"></div><div class="tabprev-bar"></div>
+          <div class="opts" id="ck" style="grid-template-columns:repeat(auto-fill,minmax(210px,1fr))"></div>
+          <div id="cu" style="display:none;margin-top:12px">
+            <div class="two">
+              <div class="fld"><label for="ct">Custom tab title</label><input class="inp" id="ct" placeholder="e.g. My Notes"></div>
+              <div class="fld"><label for="ce">Tab emoji (optional)</label><input class="inp" id="ce" placeholder="e.g. 📝" maxlength="4"></div>
+            </div>
+            <div class="btns"><button class="btn" id="ci" type="button"><svg class="i"><use href="#i-upload"/></svg>Upload a tab icon</button></div>
+          </div>
+        </div>
+        <div class="panel">
+          <header class="ph"><div><div class="pt">Panic key</div><p class="pd">Press this key anywhere on the page to instantly jump to another website.</p></div></header>
+          <div class="two">
+            <div class="fld"><span class="l">Key (click it, then press the key you want; Esc clears it)</span><div><button class="keycap" id="pk" type="button"></button></div></div>
+            <div class="fld"><label for="pu">Go to this address</label><input class="inp" id="pu" placeholder="https://classroom.google.com"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <header class="ph"><div><div class="pt">Auto cloak</div><p class="pd">Opens Phoenix inside a disguised tab, then sends the original tab away. Your browser may ask you to allow popups.</p></div></header>
+          <div class="seg" id="au"></div>
+          <div class="btns"><button class="btn" id="oc" type="button">Open a cloaked tab now</button></div>
+        </div>
+      </section>
+
+      <!-- Lock -->
+      <section class="set-pane" id="sp-lock">
+        <div class="pane-h"><h2>Lock</h2><p>Hide Phoenix behind a PIN. It's a casual screen lock for shared devices, not strong encryption.</p></div>
+        <div class="panel">
+          <header class="ph"><span class="pico"><svg class="i"><use href="#i-lock"/></svg></span><div><div class="pt">PIN <span class="badge" id="pinst">Not set</span></div><p class="pd">At least 4 characters. If you forget it, use "Reset everything" under Backup &amp; reset.</p></div></header>
+          <div class="row"><input class="inp" id="pn" type="password" placeholder="New PIN (4+ characters)" style="max-width:260px" autocomplete="new-password" aria-label="New PIN"><button class="btn pri" id="sp" type="button">Set PIN</button><button class="btn" id="cp" type="button">Remove PIN</button></div>
+        </div>
+        <div class="panel">
+          <header class="ph"><div><div class="pt">Lock automatically</div><p class="pd">Locks again after you've been idle. Only works while a PIN is set.</p></div></header>
+          <select class="inp" id="id" style="max-width:260px" aria-label="Lock after idle">
+            <option value="0">Never</option>
+            <option value="1">After 1 minute</option>
+            <option value="5">After 5 minutes</option>
+            <option value="10">After 10 minutes</option>
+          </select>
+        </div>
+        <p class="meta">Looking for cookie, tracker or proxy controls? Those are on the <button class="linkbtn" type="button" data-goto-priv="1">Privacy page</button>.</p>
+      </section>
+
+      <!-- Backup & reset -->
+      <section class="set-pane" id="sp-data">
+        <div class="pane-h"><h2>Backup &amp; reset</h2><p>Move your settings to another browser, or start fresh.</p></div>
+        <div class="panel">
+          <header class="ph"><span class="pico"><svg class="i"><use href="#i-db"/></svg></span><div><div class="pt">Backup</div><p class="pd">Saves your theme, background, disguise and other settings (never your PIN).</p></div></header>
+          <div class="btns" style="margin-top:0"><button class="btn pri" id="exf" type="button">Download backup file</button><label class="btn" style="cursor:pointer">Load backup file<input type="file" id="imf" accept=".json,application/json" hidden></label></div>
+          <details class="acc" style="margin:16px 0 0">
+            <summary>Prefer copy &amp; paste?</summary>
+            <div class="body"><textarea class="inp" id="bx" placeholder="Backup text appears here, or paste one to restore…"></textarea>
+              <div class="btns" style="margin-top:8px"><button class="btn" id="ex" type="button">Copy backup text</button><button class="btn" id="im" type="button">Restore from text</button></div></div>
+          </details>
+        </div>
+        <div class="panel danger-zone">
+          <header class="ph"><div><div class="pt">Danger zone</div><p class="pd">Erases all saved settings, your images and your PIN, then reloads Phoenix. This can't be undone.</p></div></header>
+          <button class="btn danger" id="rs" type="button">Reset everything</button>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<div id="lk"><div class="panel lockbox"><div class="pico"><svg class="i"><use href="#i-lock"/></svg></div><div class="pt">Phoenix is locked</div><p class="pd">Enter your PIN to continue.</p><input class="inp" id="lp" type="password" placeholder="PIN" aria-label="PIN" autocomplete="current-password"><small id="lm"></small><button class="btn pri" id="lpb" type="button" style="width:100%">Unlock</button></div></div>
+
+<script>
+const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const mem=Object.assign({}, window.__SEED||{});
+const FROM_SEED=!!(window.__SEED && Object.keys(window.__SEED).length);
+const S={
+  get(k,d){
+    if(FROM_SEED && mem[k]!=null){
+      try{return JSON.parse(mem[k])}catch(e){return mem[k]}
+    }
+    let v=null;
+    try{v=localStorage.getItem('bh_'+k)}catch(e){}
+    if(v==null)v=mem[k];
+    else mem[k]=v;
+    try{return v==null?d:JSON.parse(v)}catch(e){return d}
+  },
+  set(k,v){
+    v=JSON.stringify(v);mem[k]=v;
+    try{localStorage.setItem('bh_'+k,v)}catch(e){}
+  }
+};
+function syncSeed(){
+  save();
+  ['bgimg','logo','icon'].forEach(k=>{
+    try{const v=localStorage.getItem('bh_'+k);if(v!=null)mem[k]=v}catch(e){}
+  });
+}
+
+const TH=[
+  ['Forest','#6ee7a0'],['Violet','#a78bfa'],['Indigo','#60a5fa'],
+  ['Crimson','#fb7185'],['Ocean','#22d3ee'],['Sunset','#fb923c'],
+  ['Rose','#f472b6'],['Lime','#a3e635'],['Amber','#fbbf24'],['Slate','#94a3b8']
+];
+const CK=[
+  ['Phoenix','Phoenix','P','#4cc38a'],
+  ['Google Classroom','Classes','C','#1e8e3e'],
+  ['Canvas','Dashboard','C','#e13c2e'],
+  ['Google Docs','Untitled document - Google Docs','D','#4285f4'],
+  ['Google Drive','My Drive - Google Drive','D','#f9ab00'],
+  ['Custom','','?','#777']
+];
+const ICO={
+  search:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>',
+  mail:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>',
+  drive:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4l-6 10h6l3-5 3 5h6L12 4z"/></svg>',
+  docs:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>',
+  class:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 19V7a2 2 0 012-2h12a2 2 0 012 2v12"/><path d="M4 19h16M8 10h8M8 14h5"/></svg>',
+  ddg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg>',
+  web:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18"/></svg>',
+  phoenix:'<svg viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="30" fill="currentColor" opacity=".15"/><path d="M32 12c6 8 14 10 18 10-6 2-10 8-10 14 0 0-4-4-8-4s-8 4-8 4c0-6-4-12-10-14 4 0 12-2 18-10z" fill="currentColor"/><path d="M26 40c2 6 4 10 6 12 2-2 4-6 6-12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'
+};
+const QLINKS=[
+  {u:'https://duckduckgo.com/',label:'DuckDuckGo',svg:ICO.ddg,c:'#fb923c'},
+  {u:'https://mail.google.com/',label:'Gmail',svg:ICO.mail,c:'#f87171'},
+  {u:'https://drive.google.com/',label:'Drive',svg:ICO.drive,c:'#fbbf24'},
+  {u:'https://docs.google.com/',label:'Docs',svg:ICO.docs,c:'#60a5fa'},
+  {u:'https://classroom.google.com/',label:'Classroom',svg:ICO.class,c:'#34d399'}
+];
+const ENGINES={
+  ddg:{name:'DuckDuckGo',search:q=>'https://duckduckgo.com/?q='+encodeURIComponent(q)},
+  google:{name:'Google',search:q=>'https://www.google.com/search?q='+encodeURIComponent(q)},
+  bing:{name:'Bing',search:q=>'https://www.bing.com/search?q='+encodeURIComponent(q)}
+};
+
+let cfg=Object.assign({
+  pin:'',idle:0,
+  anim:matchMedia('(prefers-reduced-motion:reduce)').matches?'off':'on',
+  bg:'aurora',name:'PHOENIX',logo:'',acc:'',ce:'',
+  theme:0,mode:'dark',cloak:0,ct:'',auto:'off',pkey:'`',
+  purl:'https://classroom.google.com',
+  intensity:'med',cardStyle:'default',radius:16,engine:'ddg',pxs:'off'
+},S.get('cfg',{}));
+let cap=0,it=null;
+const save=()=>S.set('cfg',cfg);
+const ACC=()=>cfg.acc||(TH[cfg.theme]||TH[0])[1];
+let toastT;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),2200)}
+const hexA=(h,a)=>{h=String(h).replace('#','');if(h.length===3)h=[...h].map(c=>c+c).join('');const n=parseInt(h,16);return`rgba(${n>>16},${n>>8&255},${n&255},${a})`};
+
+function favIcon(letter,color){
+  return 'data:image/svg+xml,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="${color}"/><text x="32" y="45" font-size="38" font-family="Arial" font-weight="700" text-anchor="middle" fill="#fff">${letter}</text></svg>`);
+}
+function emojiIcon(e){
+  return 'data:image/svg+xml,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><text x="32" y="50" font-size="48" text-anchor="middle">${esc(e)}</text></svg>`);
+}
+
+function go(v){
+  if(v==='sec'){v='px';privTab('prot')}
+  document.querySelectorAll('.v').forEach(e=>e.classList.toggle('on',e.id==='v-'+v));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.go===v));
+  if(v==='home')renderHome();
+  if(v==='set')settings();
+  if(v==='px'){pxInit();secInit()}
+  thumbsSync();
+  scrollTo({top:0,behavior:'instant'});
+}
+
+function renderHome(){
+  const n=(cfg.name||'PHOENIX').toUpperCase().slice(0,12);
+  const half=Math.ceil(n.length/2);
+  $('#ttl').innerHTML=[...n].map((c,i)=>`<span class="${i>=half?'a':''}" style="--i:${i}">${c===' '?'&nbsp;':esc(c)}</span>`).join('');
+  const L=S.get('logo',null);
+  if(L)$('#lg').innerHTML=`<img src="${L}" alt="">`;
+  else if(cfg.logo&&cfg.logo!=='🔥'&&cfg.logo.length<=4)$('#lg').innerHTML=esc(cfg.logo);
+  else $('#lg').innerHTML=`<span style="color:var(--acc);display:grid;place-items:center;width:56%;height:56%">${ICO.phoenix}</span>`;
+  $('#qlinks').innerHTML=QLINKS.map(q=>`<a href="${q.u}" target="_blank" rel="noopener" style="--c:${q.c}"><div class="ic">${q.svg}</div>${esc(q.label)}</a>`).join('');
+  const eng=ENGINES[cfg.engine]||ENGINES.ddg;
+  $('#q').placeholder='Search '+eng.name+' or type a web address';
+  greet();homeMeta();
+  renderRecent();
+}
+function greet(){
+  const d=new Date(),h=d.getHours();
+  const g=h<5?'Still up?':h<12?'Good morning':h<18?'Good afternoon':'Good evening';
+  $('#hello').textContent=g+' · '+d.toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'})+' · '+d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
+}
+setInterval(greet,30000);
+function homeMeta(){
+  const eng=ENGINES[cfg.engine]||ENGINES.ddg;
+  $('#hmeta').innerHTML=cfg.pxs==='on'
+    ?'Searching <b>through the privacy proxy</b> · <button type="button" class="linkbtn" data-hm="1">Change</button>'
+    :'Searching with <b>'+esc(eng.name)+'</b> · results open in a new tab · <button type="button" class="linkbtn" data-hm="1">Change</button>';
+}
+$('#hmeta').onclick=e=>{if(e.target.closest('[data-hm]')){go('set');setPane('search')}};
+
+function doSearch(e){
+  if(e)e.preventDefault();
+  const q=$('#q').value.trim();
+  if(!q)return;
+  if(cfg.pxs==='on'){RS.add(q);go('px');pxFromHome(q);return}
+  let target;
+  if(/^(https?:\/\/|www\.)/i.test(q)||/^[a-z0-9-]+\.[a-z]{2,}([/:].*)?$/i.test(q)){
+    target=/^https?:\/\//i.test(q)?q:'https://'+q;
+  }else{
+    const eng=ENGINES[cfg.engine]||ENGINES.ddg;
+    target=eng.search(q);
+  }
+  RS.add(q);
+  open(target,'_blank','noopener');
+}
+$('#sf').onsubmit=doSearch;
+
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>go(b.dataset.go));
+
+function apply(){
+  const r=document.documentElement;
+  cfg.bg=bgNorm(cfg.bg);
+  r.style.setProperty('--acc',ACC());
+  r.style.setProperty('--rad',(cfg.radius||16)+'px');
+  r.style.setProperty('--rad-sm',Math.max(4,(cfg.radius||16)-6)+'px');
+  r.dataset.a=cfg.anim;
+  r.dataset.m=cfg.mode==='system'?(matchMedia('(prefers-color-scheme:light)').matches?'light':'dark'):cfg.mode;
+  r.dataset.intensity=cfg.intensity||'med';
+  r.dataset.card=cfg.cardStyle||'default';
+  const c=CK[cfg.cloak]||CK[0];
+  const title=cfg.cloak===5?(cfg.ct||'New Tab'):cfg.cloak===0?(cfg.name||'Phoenix'):c[1];
+  document.title=title;
+  let link=document.querySelector('link[rel=icon]')||document.head.appendChild(Object.assign(document.createElement('link'),{rel:'icon'}));
+  const ic=cfg.cloak===5?S.get('icon',null):null;
+  link.href=ic||(cfg.cloak===5&&cfg.ce?emojiIcon(cfg.ce):favIcon(cfg.cloak===5||cfg.cloak===0?(title[0]||'P').toUpperCase():c[2],c[3]));
+  renderHome();bgStart();tabPreview();thumbsSync();
+  if($('#rad')){$('#rad').value=cfg.radius||16;$('#radv').textContent=cfg.radius||16}
+}
+
+/* ---- Settings page ---- */
+const optBtn=(k,v,on,html)=>`<button type="button" class="opt c ${on?'on':''}" data-k="${k}" data-v="${v}">${html}</button>`;
+let bgBuilt=false;
+
+function setPane(p){
+  curPane=p;
+  document.querySelectorAll('.set-pane').forEach(e=>e.classList.toggle('on',e.id==='sp-'+p));
+  document.querySelectorAll('#sside button').forEach(b=>b.classList.toggle('on',b.dataset.pane===p));
+  thumbsSync();
+}
+document.querySelectorAll('#sside button').forEach(b=>b.onclick=()=>setPane(b.dataset.pane));
+function privTab(t){
+  document.querySelectorAll('.pt-pane').forEach(e=>e.classList.toggle('on',e.id==='pt-'+t));
+  document.querySelectorAll('#ptabs button').forEach(b=>b.classList.toggle('on',b.dataset.pt===t));
+}
+document.querySelectorAll('#ptabs button').forEach(b=>b.onclick=()=>privTab(b.dataset.pt));
+
+function tabPreview(){
+  const c=CK[cfg.cloak]||CK[0];
+  const title=cfg.cloak===5?(cfg.ct||'New Tab'):cfg.cloak===0?(cfg.name||'Phoenix'):c[1];
+  const ic=cfg.cloak===5?S.get('icon',null):null;
+  const src=ic||(cfg.cloak===5&&cfg.ce?emojiIcon(cfg.ce):favIcon(cfg.cloak===5||cfg.cloak===0?(title[0]||'P').toUpperCase():c[2],c[3]));
+  const el=$('#tabprev');el.innerHTML='<img alt=""><span></span>';
+  el.firstChild.src=src;el.lastChild.textContent=title;
+}
+
+function renderBgPicker(){
+  if(!bgBuilt){
+    bgBuilt=true;
+    $('#bgo').innerHTML=BGS.map(b=>`<button type="button" class="bgcard" data-k="bg" data-v="${b.id}"><canvas class="bgthumb" width="240" height="150" data-id="${b.id}"></canvas><span class="bgmeta"><b>${b.name}</b><small>${b.tag}</small></span><i class="chk">✓</i></button>`).join('')+
+      `<button type="button" class="bgcard" data-k="bg" data-v="plain"><span class="bgplain"></span><span class="bgmeta"><b>Plain</b><small>No effects</small></span><i class="chk">✓</i></button>`;
+    thumbs=[...document.querySelectorAll('.bgthumb')].map(c=>({c,x:c.getContext('2d'),id:c.dataset.id}));
+  }
+  document.querySelectorAll('#bgo .bgcard').forEach(b=>b.classList.toggle('on',b.dataset.v===cfg.bg));
+  const im=S.get('bgimg',null),on=cfg.bg==='image'&&!!im;
+  $('#bgup').innerHTML=`<div class="upl ${on?'on':''}"><div class="upl-ico">${im?'':'<svg class="i"><use href="#i-image"/></svg>'}</div><div class="upl-txt"><b>${im?(on?'Your picture is in use':'You have a picture saved'):'Upload your own picture'}</b><small>${im?'Replace it, switch to it, or remove it.':'Drag an image here, or choose one. It stays in this browser and is never uploaded anywhere.'}</small></div><div class="row">${im&&!on?'<button type="button" class="btn pri" data-k="bg" data-v="image">Use it</button>':''}<button type="button" class="btn ${im?'':'pri'}" id="bgu"><svg class="i"><use href="#i-upload"/></svg>${im?'Replace':'Choose image'}</button>${im?'<button type="button" class="btn" id="bgx">Remove</button>':''}</div></div>`;
+  if(im)$('#bgup .upl-ico').style.backgroundImage='url("'+im+'")';
+  thumbsSync();
+}
+
+function settings(){
+  $('#th').innerHTML=TH.map((t,i)=>`<button type="button" class="swt ${cfg.theme===i&&!cfg.acc?'on':''}" data-k="theme" data-v="${i}" style="--c:${t[1]}"><i></i>${t[0]}</button>`).join('')+
+    `<label class="swt ${cfg.acc?'on':''}" style="--c:${ACC()}"><i style="background:conic-gradient(#f87171,#fbbf24,#a3e635,#22d3ee,#a78bfa,#f472b6,#f87171)"></i>Custom<input type="color" id="cc" value="${ACC()}" aria-label="Custom accent color"></label>`;
+  $('#md').innerHTML=[['dark','Dark'],['light','Light'],['system','Match device']].map(a=>optBtn('mode',a[0],cfg.mode===a[0],a[1])).join('');
+  $('#cso').innerHTML=[['default','Default'],['glass','Glass'],['sharp','Sharp'],['soft','Soft']].map(a=>optBtn('cardStyle',a[0],cfg.cardStyle===a[0],a[1])).join('');
+  $('#ino').innerHTML=[['low','Subtle'],['med','Medium'],['high','Strong']].map(a=>optBtn('intensity',a[0],cfg.intensity===a[0],a[1])).join('');
+  $('#ano').innerHTML=[['on','Animated'],['off','Still']].map(a=>optBtn('anim',a[0],cfg.anim===a[0],a[1])).join('');
+  $('#au').innerHTML=[['off','Off'],['about','about:blank'],['blob','blob:']].map(a=>optBtn('auto',a[0],cfg.auto===a[0],a[1])).join('');
+  $('#eng').innerHTML=Object.entries(ENGINES).map(([k,v])=>optBtn('engine',k,cfg.engine===k,esc(v.name))).join('');
+  $('#pxso').innerHTML=`<button type="button" class="tog ${cfg.pxs==='on'?'on':''}" data-k="pxs" data-v="${cfg.pxs==='on'?'off':'on'}"><span><b>Send home searches through the proxy</b><small>${cfg.pxs==='on'?'On: searches open on the Privacy page.':'Off: searches open in your search engine, in a new tab.'}</small></span><i class="tsw"></i></button>`;
+  $('#ck').innerHTML=CK.map((c,i)=>`<button type="button" class="opt ${cfg.cloak===i?'on':''}" data-k="cloak" data-v="${i}"><span>${esc(c[0])}<small>${esc(c[1]||'Your own title')}</small></span><img width="26" height="26" alt="" src="${favIcon(c[2]==='?'?'N':c[2],c[3])}" style="border-radius:7px"></button>`).join('');
+  $('#cu').style.display=cfg.cloak===5?'block':'none';
+  const pk=$('#pk');pk.textContent=cfg.pkey?(cfg.pkey===' '?'Space':cfg.pkey):'Not set';pk.classList.remove('listen');
+  $('#pu').value=cfg.purl||'';$('#id').value=cfg.idle||0;
+  $('#nm').value=cfg.name||'';$('#lo').value=cfg.logo||'';$('#ce').value=cfg.ce||'';$('#ct').value=cfg.ct||'';
+  $('#rad').value=cfg.radius||16;$('#radv').textContent=cfg.radius||16;
+  const pb=$('#pinst');pb.textContent=cfg.pin?'On':'Not set';pb.className='badge'+(cfg.pin?' ok':'');
+  tabPreview();
+  renderBgPicker();
+}
+
+$('#v-set').addEventListener('click',e=>{
+  const o=e.target.closest('[data-k]');if(!o)return;
+  const k=o.dataset.k;
+  if(k==='bg'&&o.dataset.v==='image'&&!S.get('bgimg',null))return;
+  cfg[k]=['theme','cloak'].includes(k)?+o.dataset.v:o.dataset.v;
+  if(k==='theme')cfg.acc='';
+  save();apply();settings();
+});
+$('#v-set').addEventListener('input',e=>{
+  if(e.target.id!=='cc')return;
+  cfg.acc=e.target.value;save();apply();
+  document.querySelectorAll('#th .swt').forEach(s=>s.classList.toggle('on',s===e.target.parentNode));
+  e.target.parentNode.style.setProperty('--c',cfg.acc);
+});
+
+$('#ct').oninput=()=>{cfg.ct=$('#ct').value;save();apply()};
+$('#pu').oninput=()=>{cfg.purl=$('#pu').value;save()};
+$('#pk').onclick=()=>{cap=1;$('#pk').textContent='Press a key…';$('#pk').classList.add('listen')};
+$('#nm').oninput=()=>{cfg.name=$('#nm').value;save();apply()};
+$('#lo').oninput=()=>{cfg.logo=$('#lo').value;save();renderHome()};
+$('#ce').oninput=()=>{cfg.ce=$('#ce').value;save();apply()};
+$('#rad').oninput=()=>{cfg.radius=+$('#rad').value;$('#radv').textContent=cfg.radius;save();apply()};
+
+function pickImg(max,type,q,cb){
+  const i=document.createElement('input');i.type='file';i.accept='image/*';
+  i.onchange=()=>{const f=i.files[0];if(f)readImg(f,max,type,q,cb)};i.click();
+}
+function readImg(f,max,type,q,cb){
+  if(!f||!/^image\//.test(f.type))return toast('Please choose an image file');
+  const r=new FileReader();
+  r.onload=()=>{const im=new Image();
+    im.onload=()=>{
+      const k=Math.min(1,max/Math.max(im.width,im.height));
+      const c=document.createElement('canvas');c.width=im.width*k|0;c.height=im.height*k|0;
+      c.getContext('2d').drawImage(im,0,0,c.width,c.height);cb(c.toDataURL(type,q));
+    };
+    im.onerror=()=>toast("That image couldn't be read");
+    im.src=r.result};
+  r.readAsDataURL(f);
+}
+const chooseBg=()=>pickImg(1400,'image/jpeg',.7,setBgImg);
+function setBgImg(d){S.set('bgimg',d);cfg.bg='image';save();apply();settings();toast('Background updated')}
+function removeBg(){S.set('bgimg',null);if(cfg.bg==='image')cfg.bg='aurora';save();apply();settings();toast('Picture removed')}
+$('#bgup').addEventListener('click',e=>{
+  const b=e.target.closest('button');
+  if(b){if(b.id==='bgu')chooseBg();else if(b.id==='bgx')removeBg();return}
+  if(e.target.closest('.upl')&&!S.get('bgimg',null))chooseBg();
+});
+$('#bgup').addEventListener('dragover',e=>{e.preventDefault();const u=$('#bgup .upl');u&&u.classList.add('drag')});
+$('#bgup').addEventListener('dragleave',()=>{const u=$('#bgup .upl');u&&u.classList.remove('drag')});
+$('#bgup').addEventListener('drop',e=>{e.preventDefault();const u=$('#bgup .upl');u&&u.classList.remove('drag');const f=e.dataTransfer&&e.dataTransfer.files[0];if(f)readImg(f,1400,'image/jpeg',.7,setBgImg)});
+$('#lu').onclick=()=>pickImg(160,'image/png',1,d=>{S.set('logo',d);renderHome();toast('Logo updated')});
+$('#lx').onclick=()=>{S.set('logo',null);renderHome();toast('Logo removed')};
+$('#ci').onclick=()=>pickImg(64,'image/png',1,d=>{S.set('icon',d);apply();toast('Tab icon updated')});
+
+function panic(){let u=cfg.purl||'https://www.google.com';if(!/^https?:/i.test(u))u='https://'+u;location.replace(u)}
+addEventListener('keydown',e=>{
+  if(cap){e.preventDefault();cfg.pkey=e.key==='Escape'?'':e.key;cap=0;save();settings();return}
+  if(cfg.pkey&&e.key===cfg.pkey&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName))panic();
+});
+function buildCloakPage(){
+  syncSeed();
+  const seedObj={};
+  for(const k of Object.keys(mem)) seedObj[k]=mem[k];
+  // Prevent infinite auto-cloak in the new tab
+  try{
+    const c=JSON.parse(seedObj.cfg||'{}');
+    c.auto='off';
+    seedObj.cfg=JSON.stringify(c);
+  }catch(e){}
+  const seedFinal=JSON.stringify(seedObj).replace(/</g,'\u003c');
+  let page=document.documentElement.outerHTML;
+  page=page.replace(/<script>window\.__SEED=[\s\S]*?<\/script>/g,'');
+  if(/<head[^>]*>/i.test(page)) page=page.replace(/<head[^>]*>/i, m=>m+'<script>window.__SEED='+seedFinal+'<\/script>');
+  else page='<head><script>window.__SEED='+seedFinal+'<\/script></head>'+page;
+  return '<!DOCTYPE html>'+page;
+}
+function cloakTab(mode){
+  const full=buildCloakPage();
+  if(mode==='blob'){
+    const u=URL.createObjectURL(new Blob([full],{type:'text/html'}));
+    return !!open(u,'_blank');
+  }
+  // about:blank — write the full document (more reliable than iframe)
+  const w=open('about:blank','_blank');
+  if(!w) return false;
+  try{
+    w.document.open();
+    w.document.write(full);
+    w.document.close();
+    try{w.focus()}catch(e){}
+    return true;
+  }catch(err){
+    try{
+      const u=URL.createObjectURL(new Blob([full],{type:'text/html'}));
+      w.location.href=u;
+      return true;
+    }catch(e2){return false}
+  }
+}
+$('#oc').onclick=()=>{
+  const mode=(cfg.auto==='blob')?'blob':'about';
+  if(!cloakTab(mode)) alert('Allow popups for this page first.');
+};
+
+
+/* ===== Backgrounds =====
+   Every scene is a pure function of time: SC[id](ctx, width, height, seconds, accentHex, strength, isLight).
+   The page background and the live previews in Settings use exactly the same functions. */
+const BGS=[
+  {id:'aurora',name:'Aurora',tag:'Colorful'},
+  {id:'embers',name:'Embers',tag:'Warm'},
+  {id:'waves',name:'Waves',tag:'Calm'},
+  {id:'nebula',name:'Nebula',tag:'Space'},
+  {id:'synth',name:'Synthwave',tag:'Retro'},
+  {id:'matrix',name:'Matrix',tag:'Code rain'},
+  {id:'rain',name:'Rain',tag:'Moody'},
+  {id:'lava',name:'Lava lamp',tag:'Chill'},
+  {id:'snow',name:'Snowfall',tag:'Cozy'},
+  {id:'fireflies',name:'Fireflies',tag:'Night'},
+  {id:'gradient',name:'Gradient',tag:'Smooth'}
+];
+const BGMIG={particles:'embers',stars:'nebula',orbs:'lava',mesh:'gradient',grid:'synth',off:'plain'};
+function bgNorm(b){b=BGMIG[b]||b;return(b==='image'||b==='plain'||BGS.some(x=>x.id===b))?b:'aurora'}
+
+const rng=s=>()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+const RND=rng(7);
+const PT=Array.from({length:160},()=>({x:RND(),y:RND(),z:RND(),p:RND()*6.283}));
+const hexRGB=h=>{h=String(h).replace('#','');if(h.length===3)h=[...h].map(c=>c+c).join('');const n=parseInt(h,16)||0;return(n>>16)+','+(n>>8&255)+','+(n&255)};
+const UN=(w,h)=>Math.min(1,Math.max(.45,Math.max(w,h)/900));
+
+const SC={
+  /* Colorful curtains of light */
+  aurora(c,w,h,t,a,m,L){
+    c.globalCompositeOperation=L?'source-over':'lighter';
+    [[52,211,153],[34,211,238],[167,139,250]].forEach((col,i)=>{
+      const base=h*(.2+i*.13),amp=h*.11,n=40;
+      c.beginPath();
+      for(let k=0;k<=n;k++){const x=w*k/n,y=base+Math.sin(k*.33+t*.45+i*1.7)*amp+Math.sin(k*.85-t*.3+i)*amp*.4;k?c.lineTo(x,y):c.moveTo(x,y)}
+      for(let k=n;k>=0;k--){c.lineTo(w*k/n,base+h*.4+Math.sin(k*.3+t*.35+i)*amp*.7)}
+      c.closePath();
+      const g=c.createLinearGradient(0,base-amp*2.2,0,base+h*.45);
+      g.addColorStop(0,`rgba(${col},0)`);g.addColorStop(.4,`rgba(${col},${(L?.24:.28)*m})`);g.addColorStop(1,`rgba(${col},0)`);
+      c.fillStyle=g;c.fill();
+    });
+    c.globalCompositeOperation='source-over';
+  },
+  /* Rising sparks over a warm glow */
+  embers(c,w,h,t,a,m,L){
+    const u=UN(w,h);
+    const g=c.createLinearGradient(0,h,0,h*.3);
+    g.addColorStop(0,`rgba(255,90,20,${.4*m})`);g.addColorStop(.5,`rgba(255,60,10,${.1*m})`);g.addColorStop(1,'rgba(255,60,10,0)');
+    c.fillStyle=g;c.fillRect(0,0,w,h);
+    for(let i=0;i<120;i++){
+      const p=PT[i],sp=.05+.11*p.z,life=(t*sp+p.y)%1;
+      const y=h*(1.05-life*1.15),x=w*p.x+Math.sin(t*(.6+p.z)+p.p)*20*u*(.4+life);
+      const r=(.9+2.4*p.z)*u*(1-life*.55),al=(1-life)*(.55+.45*Math.sin(t*5+p.p))*m;
+      const col=life<.3?'255,205,90':life<.62?'255,125,35':'225,55,25';
+      c.fillStyle=`rgba(${col},${al*.18})`;c.beginPath();c.arc(x,y,r*3.2,0,7);c.fill();
+      c.fillStyle=`rgba(${col},${Math.min(1,al)})`;c.beginPath();c.arc(x,y,r,0,7);c.fill();
+    }
+  },
+  /* Layered ocean swells (follows accent) */
+  waves(c,w,h,t,a,m,L){
+    const rgb=hexRGB(a),u=UN(w,h);
+    for(let i=0;i<5;i++){
+      const y0=h*(.4+i*.13),amp=h*(.03+i*.008),sp=.5+i*.18,f=2.2+i*.5;
+      c.beginPath();
+      for(let x=0;x<=w;x+=5){const y=y0+Math.sin(x/w*f*6.283+t*sp+i*1.3)*amp+Math.sin(x/w*f*2.1*6.283-t*sp*.7)*amp*.4;x?c.lineTo(x,y):c.moveTo(x,y)}
+      c.strokeStyle=`rgba(${rgb},${Math.min(1,.7*m)})`;c.lineWidth=Math.max(1,1.4*u);c.stroke();
+      c.lineTo(w,h);c.lineTo(0,h);c.closePath();
+      const g=c.createLinearGradient(0,y0-amp,0,h);
+      g.addColorStop(0,`rgba(${rgb},${(.26+i*.05)*m})`);g.addColorStop(1,`rgba(${rgb},${.05*m})`);
+      c.fillStyle=g;c.fill();
+    }
+  },
+  /* Deep space: colored clouds, twinkling stars, a shooting star */
+  nebula(c,w,h,t,a,m,L){
+    const u=UN(w,h);
+    [[.25,.35,'124,58,237',.6],[.75,.3,'56,189,248',.5],[.55,.82,'236,72,153',.45]].forEach(([x,y,col,r],i)=>{
+      const cx=(x+Math.sin(t*.12+i*2)*.08)*w,cy=(y+Math.cos(t*.1+i)*.06)*h,rad=Math.max(w,h)*r;
+      const g=c.createRadialGradient(cx,cy,0,cx,cy,rad);
+      g.addColorStop(0,`rgba(${col},${.4*m})`);g.addColorStop(1,`rgba(${col},0)`);
+      c.fillStyle=g;c.fillRect(0,0,w,h);
+    });
+    const sc=L?'40,34,100':'255,255,255';
+    for(let i=0;i<150;i++){
+      const p=PT[i],x=((p.x*w-t*(2+p.z*8)*u)%w+w)%w,tw=.45+.55*Math.sin(t*(1+p.z*2)+p.p);
+      c.fillStyle=`rgba(${sc},${Math.min(1,(.3+.6*p.z)*tw*m)})`;c.beginPath();c.arc(x,p.y*h,(.5+p.z*1.5)*u,0,7);c.fill();
+    }
+    const ph=(t*.22)%1;
+    if(ph<.12){
+      const k=ph/.12,x=w*.85-k*w*.5,y=h*.08+k*h*.4,gr=c.createLinearGradient(x,y,x+w*.12,y-h*.09);
+      gr.addColorStop(0,`rgba(${sc},${.95*(1-k)})`);gr.addColorStop(1,`rgba(${sc},0)`);
+      c.strokeStyle=gr;c.lineWidth=Math.max(1,1.8*u);c.beginPath();c.moveTo(x,y);c.lineTo(x+w*.12,y-h*.09);c.stroke();
+    }
+  },
+  /* Retro sunset with a scrolling neon grid */
+  synth(c,w,h,t,a,m,L){
+    const hz=h*.56,u=UN(w,h);
+    let g=c.createLinearGradient(0,0,0,hz);
+    g.addColorStop(0,'rgba(45,12,100,.7)');g.addColorStop(1,'rgba(255,46,151,.45)');
+    c.fillStyle=g;c.fillRect(0,0,w,hz);
+    const sr=h*.25,sx=w/2,sy=hz-sr*.1;
+    g=c.createLinearGradient(0,sy-sr,0,sy+sr);g.addColorStop(0,'rgba(255,220,110,.95)');g.addColorStop(1,'rgba(255,46,151,.95)');
+    c.save();c.beginPath();c.rect(0,0,w,hz);c.clip();
+    c.fillStyle=g;c.beginPath();c.arc(sx,sy,sr,0,7);c.fill();
+    c.globalCompositeOperation='destination-out';
+    for(let i=0;i<6;i++)c.fillRect(sx-sr,sy+sr*(.02+i*.16),sr*2,sr*(.025+i*.013));
+    c.restore();
+    g=c.createLinearGradient(0,hz,0,h);g.addColorStop(0,'rgba(20,4,45,.8)');g.addColorStop(1,'rgba(70,12,100,.55)');
+    c.fillStyle=g;c.fillRect(0,hz,w,h-hz);
+    c.strokeStyle=`rgba(255,80,200,${Math.min(1,.75*m)})`;c.lineWidth=Math.max(.9,1.2*u);
+    const cx=w/2;
+    for(let i=-14;i<=14;i++){c.beginPath();c.moveTo(cx+i*w*.012,hz);c.lineTo(cx+i*w*.2,h);c.stroke()}
+    const N=9,off=(t*.35)%1;
+    for(let j=0;j<N;j++){const f=(j+off)/N,y=hz+(h-hz)*f*f;c.beginPath();c.moveTo(0,y);c.lineTo(w,y);c.stroke()}
+    c.strokeStyle=`rgba(80,220,255,${Math.min(1,.9*m)})`;c.beginPath();c.moveTo(0,hz);c.lineTo(w,hz);c.stroke();
+  },
+  /* Falling code (follows accent) */
+  matrix(c,w,h,t,a,m,L){
+    const u=UN(w,h),fs=Math.max(6,11*u),cols=Math.ceil(w/fs),rgb=hexRGB(a);
+    c.font=fs+'px ui-monospace,Menlo,Consolas,monospace';c.textBaseline='top';
+    const ch='01<>/\\{}[]=+*#$%&?ABCDEFXYZ';
+    for(let i=0;i<cols;i++){
+      const sp=.2+((i*37)%11)/11*.4,len=8+(i*13)%12,rows=h/fs;
+      const head=((t*sp+((i*53)%100)/100)%1.5)*(rows+len)-len;
+      for(let k=0;k<len;k++){
+        const row=Math.floor(head)-k;if(row<0||row*fs>h)continue;
+        const al=Math.min(1,(1-k/len)*.7*m);
+        c.fillStyle=k===0?(L?`rgba(${rgb},${Math.min(1,.95*m)})`:`rgba(255,255,255,${Math.min(1,.9*m)})`):`rgba(${rgb},${al})`;
+        c.fillText(ch[(i*7+row*13+Math.floor(t*(k===0?8:1.5)))%ch.length],i*fs,row*fs);
+      }
+    }
+  },
+  /* Slanted rain over a stormy tint */
+  rain(c,w,h,t,a,m,L){
+    const u=UN(w,h);
+    const g=c.createLinearGradient(0,0,0,h);
+    g.addColorStop(0,`rgba(30,50,95,${L?.16:.42})`);g.addColorStop(1,`rgba(80,110,160,${L?.22:.22})`);
+    c.fillStyle=g;c.fillRect(0,0,w,h);
+    c.lineWidth=Math.max(.9,1.1*u);
+    const col=L?'40,90,160':'175,205,255';
+    for(let i=0;i<130;i++){
+      const p=PT[i],sp=.8+p.z*1.1,ph=(t*sp+p.p/6.283)%1,len=(10+p.z*24)*u;
+      const y=ph*(h+len*2)-len,x=(p.x*w+ph*h*.14)%w;
+      c.strokeStyle=`rgba(${col},${Math.min(1,(.18+.4*p.z)*m)})`;
+      c.beginPath();c.moveTo(x,y);c.lineTo(x-len*.15,y-len);c.stroke();
+    }
+  },
+  /* Soft falling snow */
+  snow(c,w,h,t,a,m,L){
+    const u=UN(w,h);
+    const g=c.createLinearGradient(0,0,0,h);
+    g.addColorStop(0,`rgba(110,165,205,${L?.2:.38})`);g.addColorStop(1,`rgba(215,232,245,${L?.25:.2})`);
+    c.fillStyle=g;c.fillRect(0,0,w,h);
+    const col=L?'80,115,165':'255,255,255';
+    for(let i=0;i<110;i++){
+      const p=PT[i],ph=(t*(.04+.09*p.z)+p.y)%1,y=ph*(h+10*u)-5*u,x=((p.x*w+Math.sin(t*.6+p.p)*18*u)%w+w)%w;
+      c.fillStyle=`rgba(${col},${Math.min(1,(.4+.5*p.z)*m)})`;c.beginPath();c.arc(x,y,(.9+2.3*p.z)*u,0,7);c.fill();
+    }
+  },
+  /* Drifting, pulsing lights */
+  fireflies(c,w,h,t,a,m,L){
+    const u=UN(w,h);
+    const g=c.createLinearGradient(0,0,0,h);g.addColorStop(0,'rgba(8,30,20,0)');g.addColorStop(1,'rgba(10,55,28,.55)');
+    c.fillStyle=g;c.fillRect(0,0,w,h);
+    for(let i=0;i<46;i++){
+      const p=PT[i+20],x=w*(p.x+Math.sin(t*.15*(.5+p.z)+p.p)*.06),y=h*(.12+p.y*.85+Math.cos(t*.2*(.5+p.z)+p.p*2)*.05);
+      const pu=.5+.5*Math.sin(t*(.8+p.z*1.4)+p.p*3),r=(1.2+p.z*1.8)*u;
+      const gg=c.createRadialGradient(x,y,0,x,y,r*7);gg.addColorStop(0,`rgba(215,255,110,${Math.min(1,.8*pu*m)})`);gg.addColorStop(1,'rgba(215,255,110,0)');
+      c.fillStyle=gg;c.beginPath();c.arc(x,y,r*7,0,7);c.fill();
+      c.fillStyle=`rgba(255,255,205,${Math.min(1,pu*m)})`;c.beginPath();c.arc(x,y,r*.7,0,7);c.fill();
+    }
+  },
+  /* Big slow blobs of color */
+  lava(c,w,h,t,a,m,L){
+    c.globalCompositeOperation=L?'source-over':'lighter';
+    const rgb=hexRGB(a);
+    [rgb,'255,95,162','255,179,71','106,92,255',rgb,'56,189,248'].forEach((col,i)=>{
+      const cx=w*(.5+.38*Math.sin(t*(.17+i*.05)+i*1.9)),cy=h*(.5+.36*Math.cos(t*(.13+i*.04)+i*2.3));
+      const rad=Math.max(w,h)*(.2+.05*Math.sin(t*.3+i));
+      const g=c.createRadialGradient(cx,cy,0,cx,cy,rad);
+      g.addColorStop(0,`rgba(${col},${.65*m*(L?.7:1)})`);g.addColorStop(.62,`rgba(${col},${.5*m*(L?.7:1)})`);g.addColorStop(1,`rgba(${col},0)`);
+      c.fillStyle=g;c.fillRect(0,0,w,h);
+    });
+    c.globalCompositeOperation='source-over';
+  },
+  /* A drifting color wash (follows accent) */
+  gradient(c,w,h,t,a,m,L){
+    const rgb=hexRGB(a),ang=t*.12,x=Math.cos(ang)*w*.6,y=Math.sin(ang)*h*.6;
+    let g=c.createLinearGradient(w/2-x,h/2-y,w/2+x,h/2+y);
+    g.addColorStop(0,`rgba(${rgb},${.55*m})`);g.addColorStop(.5,`rgba(124,108,255,${.45*m})`);g.addColorStop(1,`rgba(255,122,89,${.5*m})`);
+    c.fillStyle=g;c.fillRect(0,0,w,h);
+    const gx=w*(.5+.35*Math.sin(t*.3)),gy=h*(.5+.3*Math.cos(t*.23));
+    g=c.createRadialGradient(gx,gy,0,gx,gy,Math.max(w,h)*.55);
+    g.addColorStop(0,`rgba(255,255,255,${.2*m})`);g.addColorStop(1,'rgba(255,255,255,0)');
+    c.fillStyle=g;c.fillRect(0,0,w,h);
+  }
+};
+
+const bc=$('#bgc'),bx=bc.getContext('2d');
+let raf=0,last=0,thumbs=[],thRaf=0,thLast=0,curPane='look';
+const isLight=()=>document.documentElement.dataset.m==='light';
+const intensityMul=()=>({low:.55,med:1,high:1.4}[cfg.intensity||'med']||1);
+function drawBg(t){
+  bx.clearRect(0,0,bc.width,bc.height);
+  const f=SC[cfg.bg];if(f)f(bx,bc.width,bc.height,t,ACC(),intensityMul(),isLight());
+}
+function bgLoop(ts){raf=requestAnimationFrame(bgLoop);if(ts-last<33)return;last=ts;drawBg(ts/1000)}
+function bgStart(){
+  cancelAnimationFrame(raf);bc.width=innerWidth*.5|0;bc.height=innerHeight*.5|0;
+  const im=S.get('bgimg',null),bi=$('#bgi');
+  bi.style.display=cfg.bg==='image'&&im?'block':'none';if(im)bi.style.backgroundImage='url("'+im+'")';
+  drawBg(4);
+  if(!document.hidden&&cfg.anim!=='off'&&SC[cfg.bg])raf=requestAnimationFrame(bgLoop);
+}
+/* live previews in Settings > Background: animate only while that pane is on screen */
+function thumbsDraw(t){
+  const L=isLight(),a=ACC(),m=intensityMul();
+  thumbs.forEach(o=>{o.x.clearRect(0,0,o.c.width,o.c.height);SC[o.id](o.x,o.c.width,o.c.height,t,a,m,L)});
+}
+function thumbsLoop(ts){thRaf=requestAnimationFrame(thumbsLoop);if(ts-thLast<50)return;thLast=ts;thumbsDraw(ts/1000)}
+function thumbsSync(){
+  cancelAnimationFrame(thRaf);
+  const vis=$('#v-set').classList.contains('on')&&curPane==='bg'&&!document.hidden;
+  if(!vis||!thumbs.length)return;
+  thumbsDraw(4);
+  if(cfg.anim!=='off')thRaf=requestAnimationFrame(thumbsLoop);
+}
+document.addEventListener('visibilitychange',()=>{bgStart();thumbsSync()});
+
+let rz;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(bgStart,200)});
+let mx=0,my=0,gp=0;
+addEventListener('pointermove',e=>{mx=e.clientX;my=e.clientY;if(!gp&&cfg.anim!=='off'){gp=1;requestAnimationFrame(()=>{gp=0;$('#cg').style.transform=`translate(${mx}px,${my}px)`})}},{passive:true});
+
+const hsh=s=>{let a=0xdeadbeef,b=0x41c6ce57;for(let i=0,c;i<s.length;i++){c=s.charCodeAt(i);a=Math.imul(a^c,2654435761);b=Math.imul(b^c,1597334677)}a=Math.imul(a^a>>>16,2246822507)^Math.imul(b^b>>>13,3266489909);b=Math.imul(b^b>>>16,2246822507)^Math.imul(a^a>>>13,3266489909);return(4294967296*(2097151&b)+(a>>>0)).toString(36)};
+function lock(){if(!cfg.pin)return;$('#lk').classList.add('on');$('#lp').value='';$('#lm').textContent='';$('#lp').focus()}
+function bump(){clearTimeout(it);if(cfg.pin&&cfg.idle)it=setTimeout(()=>lock(),cfg.idle*60000)}
+const hex=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
+async function pinHash(pin,saltHex){
+  const salt=saltHex?Uint8Array.from(saltHex.match(/../g).map(h=>parseInt(h,16))):crypto.getRandomValues(new Uint8Array(16));
+  const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(pin),'PBKDF2',false,['deriveBits']);
+  const bits=await crypto.subtle.deriveBits({name:'PBKDF2',salt,iterations:150000,hash:'SHA-256'},key,256);
+  return 'v2$'+hex(salt)+'$'+hex(bits);
+}
+async function pinMake(pin){try{if(window.crypto&&crypto.subtle)return await pinHash(pin)}catch(e){}return hsh(pin)}
+async function pinCheck(pin,stored){
+  if(!stored)return true;
+  if(stored.startsWith('v2$')){try{return (await pinHash(pin,stored.split('$')[1]))===stored}catch(e){return false}}
+  return hsh(pin)===stored;
+}
+let pinFails=0,pinUntil=0;
+$('#lp').onkeydown=async e=>{
+  if(e.key!=='Enter')return;
+  const now=Date.now();
+  if(now<pinUntil){$('#lm').textContent='Too many attempts. Wait '+Math.ceil((pinUntil-now)/1000)+'s';$('#lp').value='';return}
+  const ok=await pinCheck($('#lp').value,cfg.pin);
+  $('#lp').value='';
+  if(ok){pinFails=0;$('#lm').textContent='';$('#lk').classList.remove('on');bump()}
+  else{
+    pinFails++;
+    if(pinFails>=5){const w=30*Math.min(pinFails-4,10);pinUntil=Date.now()+w*1000;$('#lm').textContent='Too many attempts. Locked for '+w+'s'}
+    else $('#lm').textContent='Wrong PIN ('+(5-pinFails)+' tries left)';
+  }
+};
+$('#sp').onclick=async()=>{const v=$('#pn').value;if(v.length<4)return toast('Use at least 4 characters');cfg.pin=await pinMake(v);save();$('#pn').value='';toast('PIN set');bump();settings();if(secReady)secRender()};
+$('#cp').onclick=()=>{cfg.pin='';save();toast('PIN removed');settings();if(secReady)secRender()};
+$('#lpb').onclick=()=>$('#lp').dispatchEvent(new KeyboardEvent('keydown',{key:'Enter'}));
+$('#id').onchange=()=>{cfg.idle=+$('#id').value;save();bump()};
+['mousemove','keydown','click','touchstart'].forEach(v=>addEventListener(v,bump));
+
+$('#ex').onclick=()=>{const b=$('#bx');b.value=JSON.stringify({cfg:Object.assign({},cfg,{pin:''})});b.select();try{navigator.clipboard.writeText(b.value).then(()=>toast('Backup copied'),()=>toast('Select the text and copy it'))}catch(e){toast('Select the text and copy it')}};
+$('#im').onclick=()=>{try{const d=JSON.parse($('#bx').value);Object.assign(cfg,secPick(d.cfg));save();apply();settings();toast('Backup restored')}catch(e){toast('That backup could not be read')}};
+$('#rs').onclick=()=>{if(!confirm('Erase all saved settings?'))return;try{Object.keys(localStorage).filter(k=>k.startsWith('bh_')).forEach(k=>localStorage.removeItem(k))}catch(e){}for(const k in mem)delete mem[k];location.reload()};
+
+apply();settings();
+if(cfg.auto && cfg.auto!=='off' && top===window && !FROM_SEED){
+  try{
+    const mode=cfg.auto==='blob'?'blob':'about';
+    if(cloakTab(mode)) panic();
+  }catch(e){}
+}
+lock();bump();
+
+
+/* ===== Proxy tool: in-browser proxy pipeline ===== */
+const PXD={block:'doubleclick.net\ngooglesyndication.com\nadservice.google.com',allow:'wikipedia.org\nwikimedia.org',allowOnly:false,strip:true,https:true,ttl:300,isolate:'strict'};
+let PXS=Object.assign({},PXD,S.get('px',{}));
+const PXC=new Map(),PXL=[],PXT={req:0,hit:0,miss:0,blocked:0,err:0};
+let pxMode='search',pxReady=false,pxLastTrace=null;
+const pxSave=()=>S.set('px',PXS);
+const pxList=t=>String(t||'').split(/[\n,]+/).map(x=>x.trim().toLowerCase()).filter(Boolean);
+const pxMatch=(h,l)=>l.some(d=>h===d||h.endsWith('.'+d));
+const pxB=n=>n<1024?n+' B':(n/1024).toFixed(1)+' KB';
+const pxEl=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
+const PXMODES=[
+  ['search','Search','Look up a topic through Wikipedia’s open API.','Best for: seeing the full proxy pipeline','search'],
+  ['url','Fetch URL','The proxy requests a page for you and shows a clean reader view.','Best for: reading a page without ads or scripts','doc'],
+  ['frame','Frame','Show a site live in a sandboxed window.','Best for: sites that won’t let the proxy read them','frame']
+];
+const PXPH={search:'Search a topic…',url:'Enter a URL, e.g. https://en.wikipedia.org/wiki/Proxy_server',frame:'Enter a URL to embed, e.g. https://en.m.wikipedia.org/wiki/Proxy_server'};
+const PXEX=[
+  ['Search: solar system','search','solar system'],
+  ['Fetch an article','url','https://en.wikipedia.org/api/rest_v1/page/summary/Proxy_server'],
+  ['Fetch a page (reader view)','url','https://en.wikipedia.org/wiki/Cache_(computing)'],
+  ['See a block','url','https://doubleclick.net/'],
+  ['See a CORS failure','url','https://www.example.com/'],
+  ['Frame Wikipedia','frame','https://en.m.wikipedia.org/wiki/Proxy_server']
+];
+
+function pxFinish(ent,trace,t0,result,data,err,extra){
+  ent.ms=Math.round(performance.now()-t0);ent.result=result;
+  if(result==='ERROR')PXT.err++;
+  PXL.unshift(ent);if(PXL.length>100)PXL.pop();
+  pxLastTrace=trace;
+  if(pxReady){pxRenderTrace();pxRenderLog();pxRenderStats()}
+  return Object.assign({ok:['HIT','FETCHED','FRAME'].includes(result),result,data,error:err},extra||{});
+}
+
+async function pxRequest(raw,kind){
+  const t0=performance.now(),trace=[],ent={t:new Date(),kind,url:String(raw),result:'',ms:0,note:''};
+  const step=(name,state,detail)=>trace.push({name,state,detail});
+  PXT.req++;
+  let u;
+  try{
+    let x=String(raw).trim();
+    if(!/^[a-z][a-z0-9+.-]*:/i.test(x))x='https://'+x;
+    u=new URL(x);
+    if(!/^https?:$/.test(u.protocol))throw new Error('Only http and https URLs are supported');
+    const notes=[];
+    if(PXS.https&&u.protocol==='http:'){u.protocol='https:';notes.push('upgraded http to https')}
+    if(PXS.strip){
+      const rm=[...u.searchParams.keys()].filter(k=>/^(utm_|fbclid|gclid|msclkid|mc_eid|igshid)/i.test(k));
+      rm.forEach(k=>u.searchParams.delete(k));
+      if(rm.length)notes.push('removed tracking parameters: '+rm.join(', '));
+    }
+    step('1 Normalize','ok',(notes.length?notes.join('; '):'URL was already clean')+'. Result: '+u.href);
+  }catch(e){
+    step('1 Normalize','fail','That is not a usable URL ('+e.message+')');
+    step('2 Rules','skip','Not reached');step('3 Cache','skip','Not reached');step('4 Fetch','skip','Not reached');step('5 Transform','skip','Not reached');
+    step('6 Log','ok','Recorded as an error');
+    return pxFinish(ent,trace,t0,'ERROR',null,'That does not look like a valid URL.');
+  }
+  const host=u.hostname.toLowerCase(),bl=pxList(PXS.block),al=pxList(PXS.allow);
+  const skipRest=(from)=>{['3 Cache','4 Fetch','5 Transform'].slice(from).forEach(n=>step(n,'skip','Not reached because the request was stopped'))};
+  if(pxMatch(host,bl)){
+    PXT.blocked++;
+    step('2 Rules','fail','BLOCKED: "'+host+'" is on your blocklist, so the site was never contacted');
+    skipRest(0);step('6 Log','ok','Recorded as BLOCKED');
+    return pxFinish(ent,trace,t0,'BLOCKED',null,'Blocked by your rules: '+host+' is on the blocklist. No connection was made.');
+  }
+  if(PXS.allowOnly&&!pxMatch(host,al)){
+    PXT.blocked++;
+    step('2 Rules','fail','BLOCKED: allowlist mode is on and "'+host+'" is not on the allowlist');
+    skipRest(0);step('6 Log','ok','Recorded as BLOCKED');
+    return pxFinish(ent,trace,t0,'BLOCKED',null,'Blocked by your rules: allowlist mode is on and '+host+' is not allowed.');
+  }
+  step('2 Rules','ok',PXS.allowOnly?'"'+host+'" is on the allowlist':'"'+host+'" is not on the blocklist');
+  if(kind==='frame'){
+    step('3 Cache','skip','Frames are loaded by the browser itself, so there is nothing to store');
+    step('4 Fetch','skip','Handed to the browser, which connects to the site directly');
+    step('5 Transform','skip','The proxy never sees a frame’s content, so it can’t clean it');
+    step('6 Log','ok','Recorded as FRAME');
+    return pxFinish(ent,trace,t0,'FRAME',{url:u.href});
+  }
+  const key=u.href,c=PXC.get(key);
+  if(PXS.ttl>0&&c&&Date.now()-c.at<PXS.ttl*1000){
+    PXT.hit++;
+    step('3 Cache','ok','HIT: this exact request was answered '+Math.round((Date.now()-c.at)/1000)+'s ago, so it is served from memory');
+    step('4 Fetch','skip','Not needed, no network request was made');
+    step('5 Transform','skip','Already done when it was first fetched');
+    step('6 Log','ok','Recorded as HIT');
+    return pxFinish(ent,trace,t0,'HIT',c.data);
+  }
+  PXT.miss++;
+  step('3 Cache','ok',PXS.ttl>0?'MISS: not stored yet, or older than the '+PXS.ttl+'s TTL':'Cache is off (TTL 0), so every request goes to the site');
+  let res,text,tm;
+  try{
+    const ac=new AbortController();tm=setTimeout(()=>ac.abort(),9000);
+    res=await fetch(u.href,{signal:ac.signal,credentials:'omit',referrerPolicy:'no-referrer',cache:'no-store'});
+    text=await res.text();clearTimeout(tm);
+    step('4 Fetch',res.ok?'ok':'fail','Sent without cookies or referrer. The site replied HTTP '+res.status+' ('+pxB(text.length)+')');
+    if(!res.ok){
+      step('5 Transform','skip','Not reached');step('6 Log','ok','Recorded as an error');
+      return pxFinish(ent,trace,t0,'ERROR',null,'The site answered with HTTP '+res.status+'.');
+    }
+  }catch(e){
+    clearTimeout(tm);
+    const timeout=e&&e.name==='AbortError';
+    step('4 Fetch','fail',timeout?'No reply within 9 seconds':'The browser refused to let this page read the response. This is almost always CORS: the site has not given other pages permission to read it, and this is a browser rule a one-file page can’t override');
+    step('5 Transform','skip','Not reached');step('6 Log','ok','Recorded as an error');
+    return pxFinish(ent,trace,t0,'ERROR',null,timeout?'The request timed out.':'The browser blocked the read (CORS). The site doesn’t allow other pages to read it directly.',{cors:!timeout});
+  }
+  const ct=res.headers.get('content-type')||'';
+  let data;
+  if(/json/i.test(ct)){
+    try{data={type:'json',json:JSON.parse(text)};step('5 Transform','ok','Parsed as JSON')}
+    catch(e){data={type:'text',text:text.slice(0,20000)};step('5 Transform','ok','Looked like JSON but was not valid, shown as text')}
+  }else if(/html/i.test(ct)){
+    data=pxReader(text,u);
+    const r=data.removed;
+    step('5 Transform','ok','Built a reader view. Removed '+r.scripts+' scripts, '+r.styles+' stylesheets, '+r.frames+' frames/embeds, '+r.images+' images and '+r.handlers+' inline event handlers');
+  }else{
+    data={type:'text',text:text.slice(0,20000)};step('5 Transform','ok','Not HTML or JSON, shown as plain text');
+  }
+  if(PXS.ttl>0){PXC.set(key,{at:Date.now(),data});if(PXC.size>50)PXC.delete(PXC.keys().next().value)}
+  step('6 Log','ok','Recorded as FETCHED');
+  ent.note=pxB(text.length);
+  return pxFinish(ent,trace,t0,'FETCHED',data);
+}
+
+function pxReader(html,u){
+  const doc=new DOMParser().parseFromString(html,'text/html');
+  const q=sel=>doc.querySelectorAll(sel).length;
+  const removed={scripts:q('script'),styles:q('style,link[rel~=stylesheet]'),frames:q('iframe,object,embed,frame'),images:q('img,picture,video,audio'),handlers:0};
+  doc.querySelectorAll('*').forEach(e=>[...e.attributes].forEach(a=>{if(/^on/i.test(a.name))removed.handlers++}));
+  doc.querySelectorAll('script,style,noscript,iframe,object,embed,nav,footer,header,aside,form').forEach(e=>e.remove());
+  const title=(doc.title||'').trim()||u.hostname;
+  const blocks=[];
+  doc.querySelectorAll('h1,h2,h3,p,li,blockquote,pre').forEach(e=>{
+    const t=e.textContent.replace(/\s+/g,' ').trim();
+    if(t.length>1&&blocks.length<120)blocks.push({tag:e.tagName.toLowerCase(),text:t.slice(0,600)});
+  });
+  const links=[],seen=new Set();
+  doc.querySelectorAll('a[href]').forEach(a=>{
+    try{
+      const h=new URL(a.getAttribute('href'),u.href);
+      const t=a.textContent.replace(/\s+/g,' ').trim();
+      if(!/^https?:$/.test(h.protocol)||!t||seen.has(h.href)||links.length>=15)return;
+      seen.add(h.href);links.push({text:t.slice(0,80),href:h.href});
+    }catch(e){}
+  });
+  return {type:'page',title,blocks,links,removed,url:u.href};
+}
+
+/* ---- UI ---- */
+function pxOut(){const o=$('#pxout');o.innerHTML='';return o}
+function pxError(r,url){
+  const o=pxOut(),b=pxEl('div','px-err');
+  b.append(pxEl('b',null,r.result==='BLOCKED'?'Request blocked':'Request failed'),pxEl('br'),document.createTextNode(r.error||'Something went wrong.'));
+  if(r.cors){
+    b.append(pxEl('br'),pxEl('br'),document.createTextNode('Next step: use Frame mode. The browser can show this site in a window even though it won’t let this page read it.'));
+    const row=pxEl('div','px-btns'),bt=pxEl('button','btn','Open in Frame mode');bt.type='button';bt.onclick=()=>pxSetMode('frame',url,true);row.append(bt);b.append(row);
+  }
+  o.append(b);
+}
+async function pxSearch(q){
+  const url='https://en.wikipedia.org/w/api.php?action=query&list=search&srlimit=8&format=json&origin=*&srsearch='+encodeURIComponent(q);
+  const r=await pxRequest(url,'search');
+  if(!r.ok)return pxError(r,url);
+  const o=pxOut(),list=(r.data.json&&r.data.json.query&&r.data.json.query.search)||[];
+  o.append(pxEl('div','meta','Results for “'+q+'” from Wikipedia ('+r.result+')'));
+  if(!list.length){o.append(pxEl('p',null,'No results.'));return}
+  list.forEach(it=>{
+    const d=pxEl('div','px-item'),a=pxEl('button','px-link',it.title);a.type='button';
+    a.onclick=()=>pxSummary(it.title);
+    const sn=new DOMParser().parseFromString(it.snippet,'text/html').body.textContent;
+    d.append(a,pxEl('p',null,sn+'…'));o.append(d);
+  });
+  o.append(pxEl('div','meta','Click a result to fetch its summary through the proxy.'));
+}
+async function pxSummary(title){
+  const url='https://en.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent(title.replace(/ /g,'_'));
+  const r=await pxRequest(url,'search');
+  if(!r.ok)return pxError(r,url);
+  const j=r.data.json||{},o=pxOut();
+  o.append(pxEl('h4',null,j.title||title),pxEl('div','meta','Summary from Wikipedia ('+r.result+')'),pxEl('p',null,j.extract||'No summary available.'));
+  const row=pxEl('div','px-btns'),fb=pxEl('button','btn','Open full article in Frame');fb.type='button';
+  fb.onclick=()=>pxSetMode('frame','https://en.m.wikipedia.org/wiki/'+encodeURIComponent(title.replace(/ /g,'_')),true);
+  const bk=pxEl('button','btn','Back to results');bk.type='button';bk.onclick=()=>pxSearch($('#pxq').value.trim()||title);
+  row.append(fb,bk);o.append(row);
+}
+async function pxFetchUrl(raw){
+  const r=await pxRequest(raw,'fetch');
+  if(!r.ok)return pxError(r,raw);
+  const d=r.data,o=pxOut();
+  if(d.type==='json'){
+    o.append(pxEl('h4',null,'JSON response'),pxEl('div','meta','Parsed by the proxy ('+r.result+')'));
+    const pre=pxEl('pre',null,JSON.stringify(d.json,null,2).slice(0,6000));pre.style.cssText='white-space:pre-wrap;font-size:12px;margin-top:8px;max-height:360px;overflow:auto';o.append(pre);
+  }else if(d.type==='page'){
+    o.append(pxEl('h4',null,d.title),pxEl('div','meta','Reader view built by the proxy ('+r.result+'). Scripts, styles, frames and images were removed.'));
+    d.blocks.forEach(b=>{const e=pxEl(/^h/.test(b.tag)?'h4':'p',null,b.text);o.append(e)});
+    if(d.links.length){
+      o.append(pxEl('div','meta','Links on this page (each opens through the proxy):'));
+      d.links.forEach(l=>{const row=pxEl('div','px-item'),a=pxEl('button','px-link',l.text);a.type='button';a.onclick=()=>pxSetMode('url',l.href,true);row.append(a);o.append(row)});
+    }
+  }else{
+    o.append(pxEl('h4',null,'Plain text response'));const pre=pxEl('pre',null,d.text);pre.style.cssText='white-space:pre-wrap;font-size:12px;max-height:360px;overflow:auto';o.append(pre);
+  }
+}
+async function pxFrame(raw){
+  const r=await pxRequest(raw,'frame');
+  if(!r.ok)return pxError(r,raw);
+  const o=pxOut();
+  o.append(pxEl('div','meta','Frame mode: the rules were applied to the URL, then your browser loaded the site directly. The proxy can’t cache or clean this content. If the window below stays blank, the site refuses to be embedded.'));
+  const f=document.createElement('iframe');f.className='px-frame';f.src=r.data.url;
+  const strict=PXS.isolate!=='standard';
+  f.setAttribute('sandbox',strict?'allow-scripts allow-popups':'allow-scripts allow-forms allow-popups allow-same-origin');
+  f.referrerPolicy='no-referrer';f.title='Framed site';
+  f.setAttribute('allow',"camera 'none'; microphone 'none'; geolocation 'none'; payment 'none'; usb 'none'; clipboard-read 'none'");
+  if(strict)f.setAttribute('credentialless','');
+  o.append(pxEl('div','meta','Isolation: '+(strict?'Strict. The framed page can’t read or set its own cookies or storage'+(('credentialless' in HTMLIFrameElement.prototype)?', and starts with an empty cookie jar.':'. (This browser doesn’t support credentialless frames, so the sandbox is the only barrier.)'):'Standard. The framed page may use its own cookies and storage. Change this under Privacy, Protection.')));
+  o.append(f);
+  const row=pxEl('div','px-btns'),a=pxEl('a','btn','Open in new tab');a.href=r.data.url;a.target='_blank';a.rel='noopener noreferrer';a.style.textDecoration='none';row.append(a);o.append(row);
+}
+function pxRun(){
+  const v=$('#pxq').value.trim();if(!v)return;
+  const o=pxOut();o.append(pxEl('span','meta','Working…'));
+  if(pxMode==='search')pxSearch(v);else if(pxMode==='url')pxFetchUrl(v);else pxFrame(v);
+}
+function pxSetMode(m,val,run){
+  pxMode=m;if(val!=null)$('#pxq').value=val;
+  $('#pxq').placeholder=PXPH[m];pxRenderModes();
+  if(run)pxRun();
+}
+function pxFromHome(q){
+  pxInit();privTab('try');
+  const isUrl=/^(https?:\/\/|www\.)/i.test(q)||/^[a-z0-9-]+\.[a-z]{2,}([/:].*)?$/i.test(q);
+  pxSetMode(isUrl?'url':'search',q,true);
+}
+function pxRenderModes(){
+  $('#pxm').innerHTML=PXMODES.map(m=>`<button type="button" class="opt ${pxMode===m[0]?'on':''}" data-m="${m[0]}"><b><svg class="i"><use href="#i-${m[4]}"/></svg>${m[1]}</b><small>${m[2]}</small><span class="when">${m[3]}</span></button>`).join('');
+}
+function pxRenderTrace(){
+  const el=$('#pxtr');if(!pxLastTrace){return}
+  el.innerHTML='';
+  pxLastTrace.forEach(t=>{
+    const row=pxEl('div','px-step'),ic=pxEl('div','px-ic '+t.state,t.state==='ok'?'✓':t.state==='fail'?'✕':'–');
+    const body=pxEl('div');body.append(pxEl('b',null,t.name),pxEl('span',null,t.detail));
+    row.append(ic,body);el.append(row);
+  });
+}
+function pxRenderStats(){
+  const rate=PXT.hit+PXT.miss?Math.round(PXT.hit/(PXT.hit+PXT.miss)*100)+'%':'–';
+  $('#pxst').innerHTML=[['Requests',PXT.req],['Cache hits',PXT.hit],['Cache misses',PXT.miss],['Blocked',PXT.blocked],['Hit rate',rate]]
+    .map(a=>`<div class="px-stat"><b>${a[1]}</b><span>${a[0]}</span></div>`).join('');
+  $('#pxcn').textContent=PXC.size+' item'+(PXC.size===1?'':'s')+' stored';
+}
+function pxRenderLog(){
+  const el=$('#pxlg');
+  if(!PXL.length){el.innerHTML='<span class="meta">No requests yet.</span>';return}
+  el.innerHTML=PXL.map(e=>`<div class="px-row"><span>${e.t.toTimeString().slice(0,8)}</span><span>${esc(e.kind)}</span><span class="px-badge ${e.result}">${e.result}</span><span class="u" title="${esc(e.url)}">${e.ms}ms · ${esc(e.url)}</span></div>`).join('');
+}
+function pxRenderRules(){
+  $('#pxbl').value=PXS.block;$('#pxal').value=PXS.allow;
+  $('#pxalw').style.display=PXS.allowOnly?'block':'none';
+  const tg=[
+    ['strip','Remove tracking parameters','Cleans <code>utm_</code>, <code>fbclid</code>, <code>gclid</code> and similar bits off URLs.'],
+    ['https','Upgrade http to https','Use the encrypted version of a site whenever possible.'],
+    ['allowOnly','Allowlist mode','Block every site except the ones on your allowlist. The strictest option.']
+  ];
+  $('#pxro').innerHTML=tg.map(t=>`<button type="button" class="tog ${PXS[t[0]]?'on':''}" data-t="${t[0]}"><span><b>${t[1]}</b><small>${t[2]}</small></span><i class="tsw"></i></button>`).join('');
+  $('#pxtt').innerHTML=[[0,'Off'],[60,'1 min'],[300,'5 min'],[1800,'30 min']].map(a=>`<button type="button" class="opt c ${PXS.ttl===a[0]?'on':''}" data-ttl="${a[0]}">${a[1]}</button>`).join('');
+}
+function pxInit(){
+  if(pxReady)return;pxReady=true;
+  $('#pxm').onclick=e=>{const o=e.target.closest('[data-m]');if(o)pxSetMode(o.dataset.m)};
+  $('#pxf').onsubmit=e=>{e.preventDefault();pxRun()};
+  $('#pxex').innerHTML='<span>Try an example:</span>'+PXEX.map((x,i)=>`<button type="button" data-i="${i}">${esc(x[0])}</button>`).join('');
+  $('#pxex').onclick=e=>{const b=e.target.closest('[data-i]');if(!b)return;const x=PXEX[+b.dataset.i];pxSetMode(x[1],x[2],true)};
+  $('#pxbl').oninput=()=>{PXS.block=$('#pxbl').value;pxSave()};
+  $('#pxal').oninput=()=>{PXS.allow=$('#pxal').value;pxSave()};
+  $('#pxro').onclick=e=>{const o=e.target.closest('[data-t]');if(!o)return;PXS[o.dataset.t]=!PXS[o.dataset.t];pxSave();pxRenderRules()};
+  $('#pxtt').onclick=e=>{const o=e.target.closest('[data-ttl]');if(!o)return;PXS.ttl=+o.dataset.ttl;pxSave();pxRenderRules()};
+  $('#pxcc').onclick=()=>{PXC.clear();pxRenderStats()};
+  $('#pxlc').onclick=()=>{PXL.length=0;pxRenderLog()};
+  $('#pxle').onclick=()=>{try{navigator.clipboard.writeText(JSON.stringify(PXL,null,2));$('#pxle').textContent='Copied'}catch(e){}setTimeout(()=>$('#pxle').textContent='Copy log as JSON',1500)};
+  pxRenderModes();pxRenderRules();pxRenderStats();pxRenderLog();pxRenderTrace();
+  $('#pxq').placeholder=PXPH[pxMode];
+}
+
+
+/* ===== Security tab ===== */
+const SEC_TRACKERS=['doubleclick.net','googlesyndication.com','adservice.google.com','google-analytics.com','googletagmanager.com','googletagservices.com','facebook.net','scorecardresearch.com','adnxs.com','criteo.com','taboola.com','outbrain.com','hotjar.com','quantserve.com','amazon-adsystem.com'];
+const SEC_CSP_INFO={
+  'default-src':'Starting point: everything is blocked unless a rule below allows it',
+  'script-src':'Only code written inside this page may run. No external scripts.',
+  'style-src':'Only styles written inside this page. No external stylesheets.',
+  'img-src':'Images only from inside the page. No remote images or tracking pixels.',
+  'font-src':'Fonts only from inside the page.',
+  'connect-src':'Network requests (the proxy) may only use HTTPS.',
+  'frame-src':'Frame mode may only embed HTTPS sites.',
+  'base-uri':'Nobody can change how relative links are resolved.',
+  'object-src':'Plugins (Flash, Java and similar) are disabled.',
+  'form-action':'Forms cannot send data anywhere.',
+  'worker-src':'Background workers are disabled.'
+};
+let secReady=false;const SECV=[];
+function secPick(o){const r={};if(o&&typeof o==='object')for(const k of Object.keys(o)){if(k==='pin'||k==='__proto__'||!(k in cfg)||typeof o[k]!==typeof cfg[k])continue;r[k]=o[k]}return r}
+document.addEventListener('securitypolicyviolation',e=>{
+  SECV.unshift({t:new Date(),d:e.violatedDirective,u:e.blockedURI||'inline code'});if(SECV.length>30)SECV.pop();
+  if(secReady)secRenderViol();
+});
+function secChecks(){
+  const out=[],add=(name,state,detail)=>out.push({name,state,detail});
+  const csp=document.querySelector('meta[http-equiv="Content-Security-Policy"]');
+  add('Content Security Policy',csp?'ok':'warn',csp?'Active. The browser blocks external scripts, styles, images, plugins and form posts (details below).':'Missing. Nothing limits what this page may load.');
+  add('Referrer policy',document.querySelector('meta[name="referrer"][content="no-referrer"]')?'ok':'warn','Sites you open or embed are not told where you came from.');
+  const ext=document.querySelectorAll('script[src],link[rel~="stylesheet"],iframe[src]').length;
+  add('No third-party code in the page',ext===0?'ok':'warn',ext===0?'No external scripts or stylesheets are loaded, so no outside company can run code here.':ext+' external resource(s) are loaded.');
+  const pr=location.protocol;
+  add('Connection',pr==='https:'?'ok':pr==='http:'?'warn':'info',pr==='https:'?'This page was delivered over HTTPS (encrypted).':pr==='http:'?'This page was delivered over plain HTTP, which can be read or altered in transit. Host it on HTTPS.':'Opened as a local file or in-memory page, so there is no network connection for the page itself.');
+  let ck=[];try{ck=document.cookie?document.cookie.split(';').filter(c=>c.trim()):[]}catch(e){}
+  add('Cookies set by this page',ck.length===0?'ok':'info',ck.length===0?'None. Phoenix stores settings in local storage instead of cookies.':ck.length+' cookie(s) present (see the audit below).');
+  add('Proxy requests are cookie-free','ok','Fetch and Search send no cookies and accept none (credentials are omitted).');
+  const strict=PXS.isolate!=='standard';
+  add('Frame isolation',strict?'ok':'warn',strict?'Strict: framed sites can’t use their own cookies or storage.':'Standard: framed sites may use their own cookies. Switch to Strict below to block them.');
+  const cl='credentialless' in HTMLIFrameElement.prototype;
+  add('Empty cookie jar for frames',cl?'ok':'info',cl?'Supported: Strict frames start with no cookies.':'Not supported by this browser (it is a Chromium feature). Strict frames rely on the sandbox alone.');
+  const nb=pxList(PXS.block).length;
+  add('Tracker blocklist',nb>=5?'ok':'info',nb+' host(s) on the proxy blocklist.'+(nb<5?' Use the button below to add common trackers.':''));
+  const pin=cfg.pin;
+  add('PIN lock',!pin?'info':pin.startsWith('v2$')?'ok':'warn',!pin?'No PIN set. Optional; set one in Settings.':pin.startsWith('v2$')?'Set, stored as a salted PBKDF2 hash with attempt lockout.':'Set, but stored with an older, weaker method. Set it again in Settings to upgrade it.');
+  add('Secure context (needed for strong hashing)',window.isSecureContext?'ok':'info',window.isSecureContext?'Yes.':'No, so PINs fall back to a weaker hash.');
+  return out;
+}
+function secRender(){
+  const c=secChecks(),scored=c.filter(x=>x.state!=='info'),pass=scored.filter(x=>x.state==='ok').length,warns=scored.length-pass;
+  c.sort((a,b)=>({warn:0,ok:1,info:2}[a.state]-{warn:0,ok:1,info:2}[b.state]));
+  $('#scs').textContent=pass+'/'+scored.length;
+  $('#ring').style.setProperty('--p',scored.length?Math.round(pass/scored.length*100):0);
+  $('#sverd').textContent=warns?warns+' thing'+(warns===1?'':'s')+' worth fixing':'Everything checks out';
+  $('#scl').textContent=pass+' of '+scored.length+' checks passed';
+  const pbd=$('#pbadge');pbd.hidden=false;pbd.textContent=pass+'/'+scored.length;pbd.className='badge '+(warns?'warn':'ok');
+  const el=$('#sck');el.innerHTML='';
+  c.forEach(t=>{const row=pxEl('div','px-step'),ic=pxEl('div','px-ic '+t.state,t.state==='ok'?'✓':t.state==='warn'?'!':'i');const b=pxEl('div');b.append(pxEl('b',null,t.name),pxEl('span',null,t.detail));row.append(ic,b);el.append(row)});
+  $('#sci').innerHTML=[['strict','Strict','Blocks cookies and storage in frames'],['standard','Standard','Frames behave normally']].map(a=>`<button type="button" class="opt ${(PXS.isolate||'strict')===a[0]?'on':''}" data-iso="${a[0]}" style="flex-direction:column;align-items:flex-start;gap:2px"><b>${a[1]}</b><small>${a[2]}</small></button>`).join('');
+  $('#sctn').textContent=pxList(PXS.block).length+' hosts blocked';
+  let ck=[];try{ck=document.cookie?document.cookie.split(';').map(x=>x.split('=')[0].trim()).filter(Boolean):[]}catch(e){}
+  let ls=0;try{ls=Object.keys(localStorage).filter(k=>k.startsWith('bh_')).length}catch(e){}
+  $('#sca').innerHTML='<div class="px-step"><div class="px-ic '+(ck.length?'info':'ok')+'">'+(ck.length?'i':'✓')+'</div><div><b>Cookies</b><span>'+(ck.length?esc(ck.join(', ')):'None set by this page')+'</span></div></div>'+
+    '<div class="px-step"><div class="px-ic info">i</div><div><b>Local storage</b><span>'+ls+' Phoenix item(s). Same-origin only, never sent to any server, not encrypted.</span></div></div>'+
+    '<div class="px-step"><div class="px-ic ok">✓</div><div><b>Third-party cookies from the proxy</b><span>'+PXT.req+' request(s) this session, all made without credentials.</span></div></div>';
+  const m=document.querySelector('meta[http-equiv="Content-Security-Policy"]'),pol=m?m.content.split(';').map(x=>x.trim()).filter(Boolean):[];
+  $('#scp').innerHTML='<tr><th>Rule</th><th>What it means</th></tr>'+pol.map(p=>{const d=p.split(' ')[0];return '<tr><td>'+esc(p)+'</td><td>'+esc(SEC_CSP_INFO[d]||'')+'</td></tr>'}).join('');
+  $('#scpin').textContent=cfg.pin?'A PIN is set. The lock screen appears on load and after the idle time you chose. It is stored as a salted hash, and five wrong attempts trigger a timed lockout. It is a screen lock, not encryption.':'No PIN is set. A PIN locks Phoenix behind a screen, useful if you share a device. You can also set an idle timeout so it locks itself.';
+  secRenderViol();
+}
+function secRenderViol(){
+  const el=$('#scv');
+  el.innerHTML=SECV.length?SECV.map(v=>`<div class="px-row" style="grid-template-columns:62px 130px 1fr"><span>${v.t.toTimeString().slice(0,8)}</span><span class="px-badge BLOCKED">${esc(v.d)}</span><span class="u">${esc(v.u)}</span></div>`).join(''):'<span class="meta">Nothing blocked so far. If something tries to load a forbidden resource, it will appear here.</span>';
+}
+function secInit(){
+  if(!secReady){
+    secReady=true;
+    $('#scr').onclick=secRender;
+    $('#sci').onclick=e=>{const o=e.target.closest('[data-iso]');if(!o)return;PXS.isolate=o.dataset.iso;pxSave();secRender()};
+    $('#sct').onclick=()=>{const cur=pxList(PXS.block),add=SEC_TRACKERS.filter(h=>!cur.includes(h));PXS.block=(PXS.block.trim()?PXS.block.trim()+'\n':'')+add.join('\n');pxSave();if(pxReady)pxRenderRules();secRender()};
+    document.querySelector('[data-go-set]').onclick=()=>{go('set');setPane('lock')};
+    document.querySelector('[data-goto-priv]').onclick=()=>{go('px');privTab('prot')};
+  }
+  secRender();
+}
+
+/* v3: recent searches, file backup, persistence */
+const RS={
+  get:()=>{const a=S.get('recent',[]);return Array.isArray(a)?a:[]},
+  add(q){S.set('recent',[q,...RS.get().filter(x=>x!==q)].slice(0,8))},
+  clear(){S.set('recent',[]);renderRecent()}
+};
+function renderRecent(){
+  try{
+    const a=RS.get(),el=$('#rec');if(!el)return;
+    el.innerHTML=a.length?a.map(x=>`<button type="button" class="chip" data-q="${esc(x)}">${esc(x)}</button>`).join('')+'<button type="button" class="chip clr" data-clr="1">Clear</button>':'';
+  }catch(e){}
+}
+$('#rec').onclick=e=>{
+  const c=e.target.closest('.chip');if(!c)return;
+  if(c.dataset.clr)return RS.clear();
+  $('#q').value=c.dataset.q;doSearch();
+};
+renderRecent();
+$('#exf').onclick=()=>{
+  const b=new Blob([JSON.stringify({cfg:Object.assign({},cfg,{pin:''})})],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='phoenix-backup.json';a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1500);toast('Backup downloaded');
+};
+$('#imf').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{$('#bx').value=t;$('#im').click()});e.target.value=''};
+addEventListener('pagehide',()=>{try{save()}catch(e){}});
+try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
+secInit();
+</script>
+</body></html>
